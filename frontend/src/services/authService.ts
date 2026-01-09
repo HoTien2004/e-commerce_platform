@@ -34,7 +34,7 @@ export interface AuthResponse {
       firstName: string;
       lastName: string;
       email: string;
-      gender?: string;
+      gender?: 'male' | 'female' | 'other';
       phone?: string;
       address?: string;
       role: string;

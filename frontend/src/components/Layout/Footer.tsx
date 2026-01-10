@@ -7,6 +7,7 @@ import {
   FiPhone,
   FiMapPin,
   FiClock,
+  FiHelpCircle,
 } from 'react-icons/fi';
 
 const Footer = () => {
@@ -14,7 +15,7 @@ const Footer = () => {
     <>
       {/* Newsletter / ngăn cách body và footer */}
       <div className="bg-secondary-900 text-white border-t border-border">
-        <div className="max-w-[1200px] mx-auto px-8 py-12 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+        <div className="max-w-[1200px] mx-auto px-0 py-12 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           <div className="space-y-2">
             <h3 className="text-2xl font-bold text-white">Nhận tin mới nhất</h3>
             <p className="text-base text-secondary-100">
@@ -36,7 +37,7 @@ const Footer = () => {
       </div>
 
       <footer className="bg-background text-secondary-800 mt-auto border-t border-border text-base">
-        <div className="max-w-[1200px] mx-auto px-8 py-12">
+        <div className="max-w-[1200px] mx-auto px-0 py-12">
           <div className="grid grid-cols-1 md:grid-cols-[1.4fr_1fr_1fr_1fr] gap-10 items-start">
             {/* About */}
             <div>
@@ -45,10 +46,25 @@ const Footer = () => {
                 Cửa hàng công nghệ chuyên laptop, PC, màn hình và phụ kiện chính hãng. Cam kết sản phẩm
                 chất lượng, bảo hành rõ ràng và hỗ trợ tận tâm.
               </p>
-              <p className="mt-3 text-base text-secondary-600 inline-flex items-center gap-2">
-                <FiMapPin className="w-5 h-5 text-secondary-700" />
-                123 Tech Street, Quận 1, TP. Hồ Chí Minh
+              <p className="mt-3 text-base">
+                <Link
+                  to="/help"
+                  className="inline-flex items-center gap-2 text-secondary-700 hover:text-primary-600 transition-colors"
+                >
+                  <FiHelpCircle className="w-4 h-4" />
+                  <span>Trung tâm hỗ trợ</span>
+                </Link>
               </p>
+              <div className="mt-3">
+                <p className="text-base text-secondary-600 inline-flex items-center gap-2">
+                  <FiMapPin className="w-5 h-5 text-secondary-700" />
+                  123 Tech Street, Quận 1, TP. Hồ Chí Minh
+                </p>
+                <p className="text-base text-secondary-600 inline-flex items-center gap-2 mt-0">
+                  <FiMapPin className="w-5 h-5 text-secondary-700" />
+                  456 CMT8, Quận 7, TP. Hồ Chí Minh
+                </p>
+              </div>
               <p className="text-base text-secondary-600 inline-flex items-center gap-2">
                 <FiClock className="w-5 h-5 text-secondary-700" />
                 8:30 - 21:30 (Thứ 2 - Chủ nhật)

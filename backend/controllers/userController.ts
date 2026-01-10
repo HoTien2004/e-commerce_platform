@@ -1013,4 +1013,19 @@ const deleteAvatar = async (req: Request, res: Response): Promise<Response> => {
     }
 }
 
-export { loginUser, logoutUser, registerUser, verifyOTPAndRegister, resendOTP, forgotPassword, verifyResetPasswordOTP, resetPassword, refreshAccessToken, getUserProfile, updateUserProfile, changePassword, uploadAvatar, deleteAvatar };
+export {
+    loginUser,
+    logoutUser,
+    registerUser,
+    verifyOTPAndRegister,
+    resendOTP,
+    forgotPassword,
+    verifyResetPasswordOTP,
+    resetPassword,
+    refreshAccessToken,
+    getUserProfile,
+    updateUserProfile,
+    changePassword,
+    uploadAvatar,
+    deleteAvatar
+};

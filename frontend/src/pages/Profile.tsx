@@ -267,7 +267,7 @@ const Profile = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
-                      <FiUser className="inline w-4 h-4 mr-1" />
+                      <FiUser className="inline w-4 h-4 mr-1 mb-1" />
                       Tên
                     </label>
                     <input
@@ -303,7 +303,7 @@ const Profile = () => {
 
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-500 mb-2">
-                    <FiMail className="inline w-4 h-4 mr-1" />
+                    <FiMail className="inline w-4 h-4 mr-1 mb-1" />
                     Email
                   </label>
                   <input
@@ -354,7 +354,7 @@ const Profile = () => {
 
                 <div>
                   <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
-                    <FiPhone className="inline w-4 h-4 mr-1" />
+                    <FiPhone className="inline w-4 h-4 mr-1 mb-1" />
                     Số điện thoại
                   </label>
                   <input
@@ -367,7 +367,7 @@ const Profile = () => {
 
                 <div>
                   <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-2">
-                    <FiMapPin className="inline w-4 h-4 mr-1" />
+                    <FiMapPin className="inline w-4 h-4 mr-1 mb-1" />
                     Địa chỉ
                   </label>
                   <input
@@ -399,7 +399,7 @@ const Profile = () => {
               <form onSubmit={passwordForm.handleSubmit(handleChangePassword)} className="space-y-6">
                 <div>
                   <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 mb-2">
-                    <FiLock className="inline w-4 h-4 mr-1" />
+                    <FiLock className="inline w-4 h-4 mr-1 mb-1" />
                     Mật khẩu hiện tại
                   </label>
                   <div className="relative">

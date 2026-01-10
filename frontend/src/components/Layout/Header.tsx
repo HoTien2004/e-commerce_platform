@@ -1,17 +1,25 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { useModalStore } from '../../store/modalStore';
 import { FiShoppingCart, FiUser, FiLogOut, FiMenu, FiSearch, FiMapPin } from 'react-icons/fi';
+import toast from 'react-hot-toast';
 
 const Header = () => {
   const { user, isAuthenticated, logout } = useAuthStore();
   const { openAuthModal } = useModalStore();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState<boolean>(false);
+  const navigate = useNavigate();
+
+  const handleGoTo = (path: string) => {
+    navigate(path);
+    setIsUserMenuOpen(false);
+  };
 
   const handleLogout = () => {
+    navigate('/');
     logout();
-    window.location.href = '/';
+    toast.success('Đăng xuất thành công!');
   };
 
   return (
@@ -20,7 +28,7 @@ const Header = () => {
       <div className="bg-secondary-900 text-white text-sm">
         <div className="max-w-[1200px] mx-auto overflow-hidden">
           <div className="px-6 py-2 whitespace-nowrap ticker">
-            Địa chỉ cửa hàng: 123 Tech Street, Quận 1, TP. Hồ Chí Minh · Hotline: 0909 999 999 ·
+            Địa chỉ cửa hàng: 123 Tech Street, Quận 1, TP. Hồ Chí Minh · 456 CMT8, Quận 7, TP. Hồ Chí Minh · Hotline: 0909 999 999 ·
             Mở cửa: 8:30 - 21:30 (Thứ 2 - Chủ nhật)
           </div>
         </div>
@@ -37,17 +45,21 @@ const Header = () => {
             {/* Search bar */}
             <div className="flex-1 max-w-2xl hidden md:flex">
               <form className="w-full">
-                <div className="relative">
+                <div className="relative flex items-center">
                   <input
                     type="text"
                     placeholder="Tìm kiếm laptop, PC, chuột..."
-                    className="w-full pl-4 pr-12 py-2.5 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm font-medium"
+                    className="w-full pl-4 pr-32 py-2.5 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm font-medium"
                   />
                   <button
                     type="submit"
-                    className="absolute inset-y-1 right-1 flex items-center justify-center w-8 h-8 mr-0.5 rounded-full bg-primary-600 text-white hover:bg-primary-700 shadow-md transition-colors"
+                    className="absolute right-[1.25px] top-[1px] bottom-[1px] flex items-center rounded-r-full hover:bg-primary-100 transition-colors group"
                   >
-                    <FiSearch className="w-5 h-5" />
+                    <div className="w-px h-7 bg-gray-300 group-hover:bg-primary-300 transition-colors" />
+                    <div className="flex items-center gap-1.5 px-4 py-2 -mt-0.5">
+                      <FiSearch className="w-4 h-4 text-primary-600 group-hover:text-primary-700 transition-colors" />
+                      <span className="text-primary-600 group-hover:text-primary-700 text-sm font-medium transition-colors">Tìm kiếm</span>
+                    </div>
                   </button>
                 </div>
               </form>
@@ -58,13 +70,13 @@ const Header = () => {
               {/* User / account */}
               {isAuthenticated ? (
                 <div className="flex items-center space-x-3 text-sm">
-                  <button
-                    type="button"
+                  <Link
+                    to="/store"
                     className="hidden md:inline-flex items-center space-x-2 px-2 py-1 text-gray-700 hover:text-primary-600 transition font-medium"
                   >
                     <FiMapPin className="w-4 h-4" />
                     <span>Cửa hàng</span>
-                  </button>
+                  </Link>
                   <div className="relative">
                     <button
                       type="button"
@@ -88,12 +100,20 @@ const Header = () => {
                     {/* Dropdown */}
                     {isUserMenuOpen && (
                       <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 py-2 z-50 translate-x-2">
-                        <Link
-                          to="/profile"
-                          className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+                        <button
+                          type="button"
+                          onClick={() => handleGoTo('/profile')}
+                          className="block w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
                         >
                           Thông tin tài khoản
-                        </Link>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleGoTo('/orders')}
+                          className="block w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+                        >
+                          Tất cả đơn hàng
+                        </button>
                         <button
                           onClick={handleLogout}
                           className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
@@ -107,13 +127,13 @@ const Header = () => {
                 </div>
               ) : (
                 <div className="flex items-center space-x-3 text-sm">
-                  <button
-                    type="button"
+                  <Link
+                    to="/store"
                     className="hidden md:inline-flex items-center space-x-2 px-2 py-1 text-gray-700 hover:text-primary-600 transition font-medium"
                   >
                     <FiMapPin className="w-4 h-4" />
                     <span>Cửa hàng</span>
-                  </button>
+                  </Link>
                   <button
                     type="button"
                     onClick={() => openAuthModal('login')}

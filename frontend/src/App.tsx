@@ -1,22 +1,34 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 import Layout from './components/Layout/Layout';
 import Home from './pages/Home';
 import ForgotPassword from './pages/ForgotPassword';
 import Profile from './pages/Profile';
+import Orders from './pages/Orders';
+import Store from './pages/Store';
+import Help from './pages/Help';
+import Warranty from './pages/Warranty';
+import Shipping from './pages/Shipping';
+import Privacy from './pages/Privacy';
+import Terms from './pages/Terms';
 import { useAuthStore } from './store/authStore';
 import { useModalStore } from './store/modalStore';
+
+// Scroll to top on route change
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+  }, [pathname]);
+
+  return null;
+};
 
 // Protected Route Component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated } = useAuthStore();
   const { openAuthModal } = useModalStore();
-
-  useEffect(() => {
-    if (!isAuthenticated) {
-      openAuthModal('login');
-    }
-  }, [isAuthenticated, openAuthModal]);
 
   if (!isAuthenticated) {
     return (
@@ -24,7 +36,13 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
             <h2 className="text-2xl font-bold mb-4">Vui lòng đăng nhập</h2>
-            <p className="text-gray-600">Bạn cần đăng nhập để truy cập trang này</p>
+            <p className="text-gray-600 mb-4">Bạn cần đăng nhập để truy cập trang này</p>
+            <button
+              onClick={() => openAuthModal('login')}
+              className="btn-primary"
+            >
+              Đăng nhập
+            </button>
           </div>
         </div>
       </Layout>
@@ -37,15 +55,32 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<Layout><Home /></Layout>} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/store" element={<Layout><Store /></Layout>} />
+        <Route path="/help" element={<Layout><Help /></Layout>} />
+        <Route path="/warranty" element={<Layout><Warranty /></Layout>} />
+        <Route path="/shipping" element={<Layout><Shipping /></Layout>} />
+        <Route path="/privacy" element={<Layout><Privacy /></Layout>} />
+        <Route path="/terms" element={<Layout><Terms /></Layout>} />
         <Route
           path="/profile"
           element={
             <ProtectedRoute>
               <Layout>
                 <Profile />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/orders"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Orders />
               </Layout>
             </ProtectedRoute>
           }

@@ -11,6 +11,7 @@ import Warranty from './pages/Warranty';
 import Shipping from './pages/Shipping';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
+import NotFound from './pages/NotFound';
 import { useAuthStore } from './store/authStore';
 import { useModalStore } from './store/modalStore';
 
@@ -85,7 +86,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Layout><NotFound /></Layout>} />
       </Routes>
     </BrowserRouter>
   );

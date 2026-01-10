@@ -6,6 +6,8 @@ import swaggerUi from 'swagger-ui-express';
 import { connectDB } from "./config/db";
 import { swaggerSpec } from "./config/swagger";
 import userRouter from "./routes/userRoute";
+import cartRouter from "./routes/cartRoute";
+import productRouter from "./routes/productRoute";
 
 dotenv.config();
 
@@ -14,6 +16,10 @@ const port = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors());
+// app.use(cors({
+//     origin: 'http://localhost:5173',
+//     credentials: true
+// }));
 app.use(express.json());
 
 // Swagger documentation
@@ -30,7 +36,8 @@ connectDB().catch((error) => {
 
 // api endpoints
 app.use("/api/user", userRouter);
-// app.use("/api/products", productRouter);
+app.use("/api/cart", cartRouter);
+app.use("/api/products", productRouter);
 
 // Health check endpoint for Render
 app.get("/health", (req, res) => {
@@ -49,7 +56,24 @@ app.get("/", (req, res) => {
     res.send("API Working - Swagger docs at /api-docs")
 })
 
+// 404 handler - must be after all routes
+app.use((req, res) => {
+    res.status(404).json({
+        success: false,
+        message: "Route not found",
+        path: req.originalUrl
+    });
+});
+
+// Start server
 app.listen(port, () => {
     console.log(`Server Started on http://localhost:${port}`)
     console.log(`Swagger docs available at http://localhost:${port}/api-docs`)
-})
+}).on('error', (error: any) => {
+    if (error.code === 'EADDRINUSE') {
+        console.error(`❌ Port ${port} is already in use`);
+    } else {
+        console.error('❌ Server error:', error);
+    }
+    process.exit(1);
+});

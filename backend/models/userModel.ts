@@ -8,11 +8,11 @@ const userSchema = new mongoose.Schema({
     gender: { type: String, enum: ["male", "female", "other"], default: null },
     phone: { type: String, default: null },
     address: { type: String, default: null },
-    role: { type: String, enum: ["user", "admin"], default: "user" },
+    role: { type: String, enum: ["user", "admin"], default: "user" },// Protected admin cannot be deleted
     refreshToken: { type: String, default: null },
     avatar: { type: String, default: null }, // Cloudinary URL
     avatarPublicId: { type: String, default: null }, // Cloudinary public ID for deletion
-    cartData: { type: Object, default: {} }
+    cartId: { type: mongoose.Schema.Types.ObjectId, ref: 'cart', default: null }
 }, { minimize: false });
 
 const userModel = mongoose.models.user || mongoose.model("user", userSchema);

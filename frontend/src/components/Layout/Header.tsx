@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { useModalStore } from '../../store/modalStore';
@@ -10,6 +10,11 @@ const Header = () => {
   const { openAuthModal } = useModalStore();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState<boolean>(false);
   const navigate = useNavigate();
+
+  // Close dropdown when authentication state changes (e.g., after login)
+  useEffect(() => {
+    setIsUserMenuOpen(false);
+  }, [isAuthenticated]);
 
   const handleGoTo = (path: string) => {
     navigate(path);

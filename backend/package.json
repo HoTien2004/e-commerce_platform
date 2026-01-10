@@ -8,9 +8,9 @@
     "start": "node dist/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "tienho",
   "license": "ISC",
-  "description": "",
+  "description": "Ecommerce build by tienho 02/01/2026",
   "dependencies": {
     "bcrypt": "^5.1.1",
     "cloudinary": "^2.8.0",

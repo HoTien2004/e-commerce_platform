@@ -1,20 +1,29 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
+import { useCartStore } from '../../store/cartStore';
 import { useModalStore } from '../../store/modalStore';
 import { FiShoppingCart, FiUser, FiLogOut, FiMenu, FiSearch, FiMapPin } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
 const Header = () => {
   const { user, isAuthenticated, logout } = useAuthStore();
+  const { itemCount } = useCartStore();
   const { openAuthModal } = useModalStore();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState<boolean>(false);
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Close dropdown when authentication state changes (e.g., after login)
   useEffect(() => {
     setIsUserMenuOpen(false);
   }, [isAuthenticated]);
+
+  // Close dropdown when route changes
+  useEffect(() => {
+    setIsUserMenuOpen(false);
+  }, [location.pathname]);
 
   const handleGoTo = (path: string) => {
     navigate(path);
@@ -25,6 +34,14 @@ const Header = () => {
     navigate('/');
     logout();
     toast.success('Đăng xuất thành công!');
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery('');
+    }
   };
 
   return (
@@ -49,10 +66,12 @@ const Header = () => {
 
             {/* Search bar */}
             <div className="flex-1 max-w-2xl hidden md:flex">
-              <form className="w-full">
+              <form onSubmit={handleSearch} className="w-full">
                 <div className="relative flex items-center">
                   <input
                     type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Tìm kiếm laptop, PC, chuột..."
                     className="w-full pl-4 pr-32 py-2.5 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm font-medium"
                   />
@@ -156,9 +175,11 @@ const Header = () => {
                 className="relative p-2.5 text-gray-700 hover:text-primary-600 transition"
               >
                 <FiShoppingCart className="w-6 h-6" />
-                <span className="absolute -top-1 -right-1 bg-primary-600 text-white text-[10px] rounded-full w-5 h-5 flex items-center justify-center font-semibold">
-                  0
-                </span>
+                {itemCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-primary-600 text-white text-[10px] rounded-full min-w-[20px] h-5 flex items-center justify-center font-semibold px-1">
+                    {itemCount > 99 ? '99+' : itemCount}
+                  </span>
+                )}
               </Link>
 
               {/* Mobile menu button */}

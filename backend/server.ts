@@ -8,6 +8,7 @@ import { swaggerSpec } from "./config/swagger";
 import userRouter from "./routes/userRoute";
 import cartRouter from "./routes/cartRoute";
 import productRouter from "./routes/productRoute";
+import promoCodeRouter from "./routes/promoCodeRoute";
 
 dotenv.config();
 
@@ -38,6 +39,7 @@ connectDB().catch((error) => {
 app.use("/api/user", userRouter);
 app.use("/api/cart", cartRouter);
 app.use("/api/products", productRouter);
+app.use("/api/promo-code", promoCodeRouter);
 
 // Health check endpoint for Render
 app.get("/health", (req, res) => {

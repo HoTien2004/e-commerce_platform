@@ -13,6 +13,12 @@ import {
   FiBookOpen,
   FiMessageSquare,
 } from 'react-icons/fi';
+import ProductCard from '../components/ProductCard';
+import { productService } from '../services/productService';
+import { cartService } from '../services/cartService';
+import { useCartStore } from '../store/cartStore';
+import type { Product } from '../types/product';
+import toast from 'react-hot-toast';
 
 const heroSlides = [
   {
@@ -20,7 +26,7 @@ const heroSlides = [
     title: 'Laptop gaming hiệu năng cao',
     subtitle: 'FPS mượt, tản nhiệt tốt, giá cực tốt cho game thủ.',
     cta: 'Xem laptop gaming',
-    to: '/laptops',
+    to: '/products?category=Laptop',
     badge: 'Gaming Sale',
   },
   {
@@ -28,7 +34,7 @@ const heroSlides = [
     title: 'PC đồ họa & làm việc',
     subtitle: 'Render nhanh, đa nhiệm mượt, phù hợp designer & editor.',
     cta: 'Xem PC cấu hình cao',
-    to: '/pcs',
+    to: '/products?category=PC',
     badge: 'Workstation',
   },
   {
@@ -36,43 +42,20 @@ const heroSlides = [
     title: 'Phụ kiện công nghệ chính hãng',
     subtitle: 'Chuột, bàn phím, tai nghe, màn hình... đồng bộ hệ sinh thái.',
     cta: 'Xem phụ kiện',
-    to: '/accessories',
+    to: '/products?category=Phụ kiện',
     badge: 'Accessory Week',
   },
 ];
 
-type Product = {
-  id: number;
-  name: string;
-  price: string;
-  oldPrice?: string;
-  badge?: string;
-  category: 'laptop' | 'pc' | 'accessory';
-};
-
-const bestSellers: Product[] = [
-  { id: 1, name: 'Laptop Gaming ASUS ROG Strix G15', price: '29.990.000₫', oldPrice: '33.990.000₫', badge: 'Bán chạy', category: 'laptop' },
-  { id: 2, name: 'MacBook Air M2 13"', price: '27.490.000₫', badge: 'Hot', category: 'laptop' },
-  { id: 3, name: 'PC Gaming RTX 4060 Ti', price: '24.990.000₫', oldPrice: '26.990.000₫', category: 'pc' },
-  { id: 4, name: 'Màn hình LG UltraGear 27"', price: '7.990.000₫', category: 'accessory' },
-];
-
-const promotions: Product[] = [
-  { id: 5, name: 'Laptop học sinh - sinh viên', price: '11.990.000₫', oldPrice: '13.990.000₫', badge: '-15%', category: 'laptop' },
-  { id: 6, name: 'PC văn phòng tiết kiệm', price: '8.490.000₫', badge: 'Combo', category: 'pc' },
-  { id: 7, name: 'Bộ phím chuột không dây Logitech', price: '890.000₫', oldPrice: '1.090.000₫', badge: 'Giảm giá', category: 'accessory' },
-  { id: 8, name: 'Tai nghe gaming 7.1', price: '1.290.000₫', category: 'accessory' },
-];
-
-const accessories: Product[] = [
-  { id: 9, name: 'Chuột Logitech G Pro X Superlight', price: '3.290.000₫', badge: 'Best seller', category: 'accessory' },
-  { id: 10, name: 'Bàn phím cơ Keychron K2', price: '2.190.000₫', category: 'accessory' },
-  { id: 11, name: 'SSD NVMe 1TB Gen4', price: '2.590.000₫', category: 'accessory' },
-  { id: 12, name: 'RAM DDR5 16GB 5200MHz', price: '1.890.000₫', category: 'accessory' },
-];
 
 const Home = () => {
+  const { addItem, setLoading: setCartLoading } = useCartStore();
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [promotions, setPromotions] = useState<Product[]>([]);
+  const [bestSellers, setBestSellers] = useState<Product[]>([]);
+  const [accessories, setAccessories] = useState<Product[]>([]);
+  const [components, setComponents] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -81,48 +64,76 @@ const Home = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const activeSlide = heroSlides[currentSlide];
+  useEffect(() => {
+    fetchProducts();
+  }, []);
 
-  const renderProductCard = (product: Product) => (
-    <div
-      key={product.id}
-      className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden flex flex-col"
-    >
-      <div className="h-40 md:h-44 bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center">
-        <div className="flex items-center justify-center h-16 w-16 rounded-2xl bg-white shadow-sm text-primary-600">
-          {product.category === 'laptop' && <FiTrendingUp className="w-7 h-7" />}
-          {product.category === 'pc' && <FiCpu className="w-7 h-7" />}
-          {product.category === 'accessory' && <FiZap className="w-7 h-7" />}
-        </div>
-      </div>
-      <div className="flex-1 p-4 md:p-5 flex flex-col">
-        <div className="flex items-start justify-between gap-2 mb-2">
-          <h3 className="text-sm md:text-base font-semibold text-gray-900 line-clamp-2">
-            {product.name}
-          </h3>
-          {product.badge && (
-            <span className="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-semibold text-amber-700 border border-amber-100">
-              {product.badge}
-            </span>
-          )}
-        </div>
-        <div className="mt-auto">
-          <div className="flex items-baseline gap-2">
-            <span className="text-base md:text-lg font-bold text-primary-600">{product.price}</span>
-            {product.oldPrice && (
-              <span className="text-xs md:text-sm text-gray-400 line-through">{product.oldPrice}</span>
-            )}
-          </div>
-          <button
-            type="button"
-            className="mt-3 inline-flex items-center justify-center w-full rounded-xl border border-primary-100 bg-primary-50 px-3 py-2 text-xs md:text-sm font-semibold text-primary-700 hover:bg-primary-100 transition-colors"
-          >
-            Thêm vào giỏ
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch all products for promotions (filter by discount > 0)
+      const allProductsRes = await productService.getProducts({ limit: 50, status: 'active' });
+      const allProducts = allProductsRes?.data?.products || [];
+      const promotionProducts = allProducts
+        .filter((p: Product) => p.discount > 0)
+        .slice(0, 8);
+
+      // Fetch best sellers (8 products)
+      const bestSellersRes = await productService.getBestSellers(8);
+
+      // Fetch accessories: Chuột, Loa máy tính, Màn hình, Tai nghe, Bàn phím, Pad chuột
+      const accessoryCategories = ['Chuột', 'Loa máy tính', 'Màn hình', 'Tai nghe', 'Bàn phím', 'Pad chuột'];
+      const accessoryPromises = accessoryCategories.map(cat => 
+        productService.getProducts({ category: cat, limit: 3, status: 'active' })
+      );
+      const accessoryResults = await Promise.all(accessoryPromises);
+      const accessoryProducts = accessoryResults
+        .flatMap(res => res?.data?.products || [])
+        .slice(0, 8);
+
+      // Fetch components: Linh kiện máy tính
+      const componentsRes = await productService.getProducts({ 
+        category: 'Linh kiện máy tính', 
+        limit: 8, 
+        status: 'active' 
+      });
+
+      setPromotions(promotionProducts);
+      setBestSellers(bestSellersRes?.data?.products || []);
+      setAccessories(accessoryProducts);
+      setComponents(componentsRes?.data?.products || []);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      // Set empty arrays on error to prevent undefined map errors
+      setPromotions([]);
+      setBestSellers([]);
+      setAccessories([]);
+      setComponents([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddToCart = async (product: Product) => {
+    try {
+      setCartLoading(true);
+      const response = await cartService.addToCart({
+        productId: product._id,
+        quantity: 1,
+      });
+
+      addItem(response.data.items[response.data.items.length - 1]);
+      setCartLoading(false);
+
+      toast.success(`Đã thêm "${product.name}" vào giỏ hàng`);
+    } catch (error: any) {
+      setCartLoading(false);
+      toast.error(error.message || 'Lỗi khi thêm vào giỏ hàng');
+    }
+  };
+
+  const activeSlide = heroSlides[currentSlide];
 
   return (
     <div className="bg-gray-50">
@@ -140,69 +151,104 @@ const Home = () => {
                 {/* Group 1: sản phẩm */}
                 <div className="rounded-xl bg-white mt-2">
                   <nav className="px-3 py-0 space-y-1 text-sm">
-                    <button
-                      type="button"
-                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-transparent hover:border-primary-100 hover:bg-primary-50 hover:text-primary-700 font-medium text-gray-800 transition-colors"
-                    >
-                      <FiTrendingUp className="w-4 h-4 flex-shrink-0" />
-                      <span className="truncate">Laptop</span>
-                    </button>
-                    <button
-                      type="button"
+                    <Link
+                      to="/products?category=PC Gaming"
                       className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-transparent hover:border-primary-100 hover:bg-primary-50 hover:text-primary-700 font-medium text-gray-800 transition-colors"
                     >
                       <FiCpu className="w-4 h-4 flex-shrink-0" />
-                      <span className="truncate">PC & máy tính để bàn</span>
-                    </button>
-                    <button
-                      type="button"
-                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-transparent hover:border-primary-100 hover:bg-primary-50 hover:text-primary-700 text-gray-800 transition-colors"
+                      <span className="truncate">PC Gaming</span>
+                    </Link>
+                    <Link
+                      to="/products?category=PC Văn phòng"
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-transparent hover:border-primary-100 hover:bg-primary-50 hover:text-primary-700 font-medium text-gray-800 transition-colors"
                     >
-                      <FiMonitor className="w-4 h-4 flex-shrink-0" />
-                      <span className="truncate">Màn hình</span>
-                    </button>
-                    <button
-                      type="button"
-                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-transparent hover:border-primary-100 hover:bg-primary-50 hover:text-primary-700 text-gray-800 transition-colors"
+                      <FiCpu className="w-4 h-4 flex-shrink-0" />
+                      <span className="truncate">PC Văn phòng</span>
+                    </Link>
+                    <Link
+                      to="/products?category=PC Workstation"
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-transparent hover:border-primary-100 hover:bg-primary-50 hover:text-primary-700 font-medium text-gray-800 transition-colors"
                     >
-                      <FiTrendingUp className="w-4 h-4 flex-shrink-0" />
-                      <span className="truncate">Laptop văn phòng</span>
-                    </button>
-                    <button
-                      type="button"
-                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-transparent hover:border-primary-100 hover:bg-primary-50 hover:text-primary-700 text-gray-800 transition-colors"
+                      <FiCpu className="w-4 h-4 flex-shrink-0" />
+                      <span className="truncate">PC Workstation</span>
+                    </Link>
+                    <Link
+                      to="/products?category=PC MINI"
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-transparent hover:border-primary-100 hover:bg-primary-50 hover:text-primary-700 font-medium text-gray-800 transition-colors"
+                    >
+                      <FiCpu className="w-4 h-4 flex-shrink-0" />
+                      <span className="truncate">PC MINI</span>
+                    </Link>
+                    <Link
+                      to="/products?category=Laptop gaming"
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-transparent hover:border-primary-100 hover:bg-primary-50 hover:text-primary-700 font-medium text-gray-800 transition-colors"
                     >
                       <FiTrendingUp className="w-4 h-4 flex-shrink-0" />
                       <span className="truncate">Laptop gaming</span>
-                    </button>
-                    <button
-                      type="button"
-                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-transparent hover:border-primary-100 hover:bg-primary-50 hover:text-primary-700 text-gray-800 transition-colors"
+                    </Link>
+                    <Link
+                      to="/products?category=Laptop văn phòng"
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-transparent hover:border-primary-100 hover:bg-primary-50 hover:text-primary-700 font-medium text-gray-800 transition-colors"
                     >
-                      <FiHardDrive className="w-4 h-4 flex-shrink-0" />
-                      <span className="truncate">Linh kiện PC</span>
-                    </button>
-                    <button
-                      type="button"
-                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-transparent hover:border-primary-100 hover:bg-primary-50 hover:text-primary-700 text-gray-800 transition-colors"
+                      <FiTrendingUp className="w-4 h-4 flex-shrink-0" />
+                      <span className="truncate">Laptop văn phòng</span>
+                    </Link>
+                    <Link
+                      to="/products?category=Màn hình"
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-transparent hover:border-primary-100 hover:bg-primary-50 hover:text-primary-700 font-medium text-gray-800 transition-colors"
                     >
-                      <FiMousePointer className="w-4 h-4 flex-shrink-0" />
-                      <span className="truncate">Chuột</span>
-                    </button>
-                    <button
-                      type="button"
-                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-transparent hover:border-primary-100 hover:bg-primary-50 hover:text-primary-700 text-gray-800 transition-colors"
+                      <FiMonitor className="w-4 h-4 flex-shrink-0" />
+                      <span className="truncate">Màn hình</span>
+                    </Link>
+                    <Link
+                      to="/products?category=Loa máy tính"
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-transparent hover:border-primary-100 hover:bg-primary-50 hover:text-primary-700 font-medium text-gray-800 transition-colors"
                     >
-                      <FiMousePointer className="w-4 h-4 flex-shrink-0" />
-                      <span className="truncate">Bàn phím</span>
-                    </button>
-                    <button
-                      type="button"
-                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-transparent hover:border-primary-100 hover:bg-primary-50 hover:text-primary-700 text-gray-800 transition-colors"
+                      <FiZap className="w-4 h-4 flex-shrink-0" />
+                      <span className="truncate">Loa máy tính</span>
+                    </Link>
+                    <Link
+                      to="/products?category=Giá treo"
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-transparent hover:border-primary-100 hover:bg-primary-50 hover:text-primary-700 font-medium text-gray-800 transition-colors"
+                    >
+                      <FiMonitor className="w-4 h-4 flex-shrink-0" />
+                      <span className="truncate">Giá treo</span>
+                    </Link>
+                    <Link
+                      to="/products?category=Tai nghe"
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-transparent hover:border-primary-100 hover:bg-primary-50 hover:text-primary-700 font-medium text-gray-800 transition-colors"
                     >
                       <FiMousePointer className="w-4 h-4 flex-shrink-0" />
                       <span className="truncate">Tai nghe</span>
-                    </button>
+                    </Link>
+                    <Link
+                      to="/products?category=Chuột"
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-transparent hover:border-primary-100 hover:bg-primary-50 hover:text-primary-700 font-medium text-gray-800 transition-colors"
+                    >
+                      <FiMousePointer className="w-4 h-4 flex-shrink-0" />
+                      <span className="truncate">Chuột</span>
+                    </Link>
+                    <Link
+                      to="/products?category=Bàn phím"
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-transparent hover:border-primary-100 hover:bg-primary-50 hover:text-primary-700 font-medium text-gray-800 transition-colors"
+                    >
+                      <FiMousePointer className="w-4 h-4 flex-shrink-0" />
+                      <span className="truncate">Bàn phím</span>
+                    </Link>
+                    <Link
+                      to="/products?category=Pad chuột"
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-transparent hover:border-primary-100 hover:bg-primary-50 hover:text-primary-700 font-medium text-gray-800 transition-colors"
+                    >
+                      <FiMousePointer className="w-4 h-4 flex-shrink-0" />
+                      <span className="truncate">Pad chuột</span>
+                    </Link>
+                    <Link
+                      to="/products?category=Linh kiện máy tính"
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-transparent hover:border-primary-100 hover:bg-primary-50 hover:text-primary-700 font-medium text-gray-800 transition-colors"
+                    >
+                      <FiHardDrive className="w-4 h-4 flex-shrink-0" />
+                      <span className="truncate">Linh kiện máy tính</span>
+                    </Link>
                   </nav>
                 </div>
 
@@ -214,48 +260,41 @@ const Home = () => {
                 {/* Group 2: nội dung / tin tức */}
                 <div className="rounded-xl bg-white">
                   <nav className="px-3 py-0 space-y-1 text-sm">
-                    <button
-                      type="button"
+                    <Link
+                      to="/news"
                       className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-transparent hover:border-primary-100 hover:bg-primary-50 hover:text-primary-700 font-medium text-gray-800 transition-colors"
                     >
                       <FiBookOpen className="w-4 h-4 flex-shrink-0" />
                       <span className="truncate">Tin tức công nghệ</span>
-                    </button>
-                    <button
-                      type="button"
-                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-transparent hover:border-primary-100 hover:bg-primary-50 hover:text-primary-700 text-gray-800 transition-colors"
+                    </Link>
+                    <Link
+                      to="/promotions"
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-transparent hover:border-primary-100 hover:bg-primary-50 hover:text-primary-700 font-medium text-gray-800 transition-colors"
                     >
                       <FiTag className="w-4 h-4 flex-shrink-0" />
                       <span className="truncate">Khuyến mãi & voucher</span>
-                    </button>
-                    <button
-                      type="button"
-                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-transparent hover:border-primary-100 hover:bg-primary-50 hover:text-primary-700 text-gray-800 transition-colors"
+                    </Link>
+                    <Link
+                      to="/guides/laptop"
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-transparent hover:border-primary-100 hover:bg-primary-50 hover:text-primary-700 font-medium text-gray-800 transition-colors"
                     >
                       <FiBookOpen className="w-4 h-4 flex-shrink-0" />
                       <span className="truncate">Hướng dẫn chọn laptop</span>
-                    </button>
-                    <button
-                      type="button"
-                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-transparent hover:border-primary-100 hover:bg-primary-50 hover:text-primary-700 text-gray-800 transition-colors"
+                    </Link>
+                    <Link
+                      to="/guides/build-pc"
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-transparent hover:border-primary-100 hover:bg-primary-50 hover:text-primary-700 font-medium text-gray-800 transition-colors"
                     >
                       <FiCpu className="w-4 h-4 flex-shrink-0" />
                       <span className="truncate">Kinh nghiệm build PC</span>
-                    </button>
-                    <button
-                      type="button"
-                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-transparent hover:border-primary-100 hover:bg-primary-50 hover:text-primary-700 text-gray-800 transition-colors"
+                    </Link>
+                    <Link
+                      to="/faq"
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-transparent hover:border-primary-100 hover:bg-primary-50 hover:text-primary-700 font-medium text-gray-800 transition-colors"
                     >
                       <FiMessageSquare className="w-4 h-4 flex-shrink-0" />
                       <span className="truncate">Hỏi đáp & hỗ trợ</span>
-                    </button>
-                    <button
-                      type="button"
-                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-transparent hover:border-primary-100 hover:bg-primary-50 hover:text-primary-700 text-gray-800 transition-colors"
-                    >
-                      <FiMessageSquare className="w-4 h-4 flex-shrink-0" />
-                      <span className="truncate">Hỏi đáp & hỗ trợ</span>
-                    </button>
+                    </Link>
                   </nav>
                 </div>
               </div>
@@ -330,72 +369,42 @@ const Home = () => {
             </div>
           </section>
 
-          {/* Categories */}
-          <section className="py-6 md:py-8 bg-white rounded-3xl shadow-sm border border-gray-100">
+          {/* Sản phẩm khuyến mãi */}
+          <section className="py-6 md:py-8 bg-white rounded-3xl border border-gray-100 shadow-sm">
             <div className="px-4 md:px-6">
-              <h2 className="text-xl md:text-2xl font-bold mb-6 md:mb-8">Danh mục nổi bật</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+              <div className="flex items-center justify-between mb-6 md:mb-8">
+                <h2 className="text-xl md:text-2xl font-bold flex items-center gap-2">
+                  <FiZap className="w-5 h-5 text-amber-500" />
+                  <span>Sản phẩm khuyến mãi</span>
+                </h2>
                 <Link
-                  to="/laptops"
-                  className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-gradient-to-br from-primary-50 to-primary-100 p-5 md:p-6 flex flex-col justify-between"
+                  to="/products?sortBy=discount&sortOrder=desc"
+                  className="text-xs md:text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
                 >
-                  <div>
-                    <p className="text-xs font-semibold text-primary-600 mb-1">Laptop</p>
-                    <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-1">Laptop chính hãng</h3>
-                    <p className="text-sm text-secondary-700">
-                      Laptop gaming, văn phòng, đồ họa cho mọi nhu cầu.
-                    </p>
-                  </div>
-                  <div className="mt-4 flex items-center justify-between">
-                    <span className="text-xs font-medium text-primary-700">Xem tất cả</span>
-                    <span className="text-4xl md:text-5xl group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform">
-                      💻
-                    </span>
-                  </div>
+                  Xem tất cả
                 </Link>
-
-                <Link
-                  to="/pcs"
-                  className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-gradient-to-br from-indigo-50 to-indigo-100 p-5 md:p-6 flex flex-col justify-between"
-                >
-                  <div>
-                    <p className="text-xs font-semibold text-indigo-600 mb-1">PC</p>
-                    <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-1">PC cấu hình cao</h3>
-                    <p className="text-sm text-secondary-700">
-                      PC gaming, đồ họa, văn phòng lắp sẵn, tối ưu hiệu năng.
-                    </p>
-                  </div>
-                  <div className="mt-4 flex items-center justify-between">
-                    <span className="text-xs font-medium text-indigo-700">Xem tất cả</span>
-                    <span className="text-4xl md:text-5xl group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform">
-                      🖥️
-                    </span>
-                  </div>
-                </Link>
-
-                <Link
-                  to="/accessories"
-                  className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-gradient-to-br from-emerald-50 to-emerald-100 p-5 md:p-6 flex flex-col justify-between"
-                >
-                  <div>
-                    <p className="text-xs font-semibold text-emerald-600 mb-1">Phụ kiện</p>
-                    <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-1">Phụ kiện & linh kiện</h3>
-                    <p className="text-sm text-secondary-700">
-                      Chuột, bàn phím, tai nghe, linh kiện nâng cấp PC.
-                    </p>
-                  </div>
-                  <div className="mt-4 flex items-center justify-between">
-                    <span className="text-xs font-medium text-emerald-700">Xem tất cả</span>
-                    <span className="text-4xl md:text-5xl group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform">
-                      🖱️
-                    </span>
-                  </div>
-                </Link>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+                {loading ? (
+                  [...Array(8)].map((_, i) => (
+                    <div key={i} className="bg-white rounded-2xl border border-gray-100 animate-pulse">
+                      <div className="h-40 bg-gray-200" />
+                      <div className="p-4 space-y-2">
+                        <div className="h-4 bg-gray-200 rounded w-3/4" />
+                        <div className="h-6 bg-gray-200 rounded w-1/2" />
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  (promotions || []).slice(0, 8).map((product) => (
+                    <ProductCard key={product._id} product={product} onAddToCart={handleAddToCart} />
+                  ))
+                )}
               </div>
             </div>
           </section>
 
-          {/* Best sellers */}
+          {/* Sản phẩm bán chạy */}
           <section className="py-6 md:py-8 bg-gray-50 rounded-3xl border border-gray-100 shadow-sm">
             <div className="px-4 md:px-6">
               <div className="flex items-center justify-between mb-6 md:mb-8">
@@ -403,57 +412,99 @@ const Home = () => {
                   <FiTrendingUp className="w-5 h-5 text-primary-600" />
                   <span>Sản phẩm bán chạy</span>
                 </h2>
-                <button
-                  type="button"
-                  className="text-xs md:text-sm font-medium text-primary-600 hover:text-primary-700"
+                <Link
+                  to="/products?sortBy=soldCount&sortOrder=desc"
+                  className="text-xs md:text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
                 >
                   Xem tất cả
-                </button>
+                </Link>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-                {bestSellers.map(renderProductCard)}
+                {loading ? (
+                  [...Array(8)].map((_, i) => (
+                    <div key={i} className="bg-white rounded-2xl border border-gray-100 animate-pulse">
+                      <div className="h-40 bg-gray-200" />
+                      <div className="p-4 space-y-2">
+                        <div className="h-4 bg-gray-200 rounded w-3/4" />
+                        <div className="h-6 bg-gray-200 rounded w-1/2" />
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  (bestSellers || []).slice(0, 8).map((product) => (
+                    <ProductCard key={product._id} product={product} onAddToCart={handleAddToCart} />
+                  ))
+                )}
               </div>
             </div>
           </section>
 
-          {/* Promotions */}
+          {/* Phụ kiện máy tính */}
           <section className="py-6 md:py-8 bg-white rounded-3xl border border-gray-100 shadow-sm">
             <div className="px-4 md:px-6">
               <div className="flex items-center justify-between mb-6 md:mb-8">
                 <h2 className="text-xl md:text-2xl font-bold flex items-center gap-2">
-                  <FiZap className="w-5 h-5 text-amber-500" />
-                  <span>Khuyến mãi nổi bật</span>
+                  <FiMousePointer className="w-5 h-5 text-emerald-600" />
+                  <span>Phụ kiện máy tính</span>
                 </h2>
-                <button
-                  type="button"
-                  className="text-xs md:text-sm font-medium text-primary-600 hover:text-primary-700"
+                <Link
+                  to="/products?category=Chuột"
+                  className="text-xs md:text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
                 >
-                  Xem chương trình
-                </button>
+                  Xem tất cả
+                </Link>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-                {promotions.map(renderProductCard)}
+                {loading ? (
+                  [...Array(8)].map((_, i) => (
+                    <div key={i} className="bg-white rounded-2xl border border-gray-100 animate-pulse">
+                      <div className="h-40 bg-gray-200" />
+                      <div className="p-4 space-y-2">
+                        <div className="h-4 bg-gray-200 rounded w-3/4" />
+                        <div className="h-6 bg-gray-200 rounded w-1/2" />
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  (accessories || []).slice(0, 8).map((product) => (
+                    <ProductCard key={product._id} product={product} onAddToCart={handleAddToCart} />
+                  ))
+                )}
               </div>
             </div>
           </section>
 
-          {/* Accessories & parts */}
+          {/* Linh kiện máy tính */}
           <section className="py-6 md:py-8 bg-gray-50 rounded-3xl border border-gray-100 shadow-sm">
             <div className="px-4 md:px-6">
               <div className="flex items-center justify-between mb-6 md:mb-8">
                 <h2 className="text-xl md:text-2xl font-bold flex items-center gap-2">
-                  <FiCpu className="w-5 h-5 text-emerald-600" />
-                  <span>Phụ kiện & linh kiện</span>
+                  <FiHardDrive className="w-5 h-5 text-indigo-600" />
+                  <span>Linh kiện máy tính</span>
                 </h2>
-                <button
-                  type="button"
-                  className="text-xs md:text-sm font-medium text-primary-600 hover:text-primary-700"
+                <Link
+                  to="/products?category=Linh kiện máy tính"
+                  className="text-xs md:text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
                 >
-                  Xem phụ kiện
-                </button>
+                  Xem tất cả
+                </Link>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-                {accessories.map(renderProductCard)}
+                {loading ? (
+                  [...Array(8)].map((_, i) => (
+                    <div key={i} className="bg-white rounded-2xl border border-gray-100 animate-pulse">
+                      <div className="h-40 bg-gray-200" />
+                      <div className="p-4 space-y-2">
+                        <div className="h-4 bg-gray-200 rounded w-3/4" />
+                        <div className="h-6 bg-gray-200 rounded w-1/2" />
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  (components || []).slice(0, 8).map((product) => (
+                    <ProductCard key={product._id} product={product} onAddToCart={handleAddToCart} />
+                  ))
+                )}
               </div>
             </div>
           </section>

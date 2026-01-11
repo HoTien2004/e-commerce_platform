@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { FiX, FiUpload, FiTrash2 } from 'react-icons/fi';
 import { productService, Product, CreateProductData } from '../services/productService';
+import { PRODUCT_CATEGORIES } from '../constants/categories';
 import toast from 'react-hot-toast';
 
 const productSchema = z.object({
@@ -16,7 +17,6 @@ const productSchema = z.object({
   brand: z.string().optional(),
   stock: z.number().min(0, 'Tồn kho phải lớn hơn hoặc bằng 0').default(0),
   status: z.enum(['active', 'inactive', 'out_of_stock', 'discontinued']).default('active'),
-  tags: z.string().optional(),
 });
 
 type ProductFormData = z.infer<typeof productSchema>;
@@ -51,7 +51,6 @@ const ProductModal = ({ product, onClose }: ProductModalProps) => {
       brand: product?.brand || '',
       stock: product?.stock || 0,
       status: product?.status || 'active',
-      tags: product?.tags?.join(', ') || '',
     },
   });
 
@@ -67,7 +66,6 @@ const ProductModal = ({ product, onClose }: ProductModalProps) => {
         brand: product.brand,
         stock: product.stock,
         status: product.status,
-        tags: product.tags?.join(', ') || '',
       });
       setImages(product.images || []);
     }
@@ -121,7 +119,6 @@ const ProductModal = ({ product, onClose }: ProductModalProps) => {
         brand: data.brand,
         stock: data.stock,
         status: data.status,
-        tags: data.tags ? data.tags.split(',').map((tag) => tag.trim()).filter(Boolean) : [],
         images: images,
       };
 
@@ -167,7 +164,7 @@ const ProductModal = ({ product, onClose }: ProductModalProps) => {
               </label>
               <input
                 {...register('name')}
-                className={errors.name ? 'border-red-500' : ''}
+                className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 ${errors.name ? 'border-red-500' : ''}`}
               />
               {errors.name && (
                 <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
@@ -176,7 +173,10 @@ const ProductModal = ({ product, onClose }: ProductModalProps) => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Thương hiệu</label>
-              <input {...register('brand')} />
+              <input
+                {...register('brand')}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+              />
             </div>
 
             <div>
@@ -186,7 +186,7 @@ const ProductModal = ({ product, onClose }: ProductModalProps) => {
               <input
                 type="number"
                 {...register('price', { valueAsNumber: true })}
-                className={errors.price ? 'border-red-500' : ''}
+                className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 ${errors.price ? 'border-red-500' : ''}`}
               />
               {errors.price && (
                 <p className="mt-1 text-sm text-red-600">{errors.price.message}</p>
@@ -198,12 +198,23 @@ const ProductModal = ({ product, onClose }: ProductModalProps) => {
               <input
                 type="number"
                 {...register('originalPrice', { valueAsNumber: true })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Danh mục</label>
-              <input {...register('category')} />
+              <select
+                {...register('category')}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+              >
+                <option value="">-- Chọn danh mục --</option>
+                {PRODUCT_CATEGORIES.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div>
@@ -211,7 +222,7 @@ const ProductModal = ({ product, onClose }: ProductModalProps) => {
               <input
                 type="number"
                 {...register('stock', { valueAsNumber: true })}
-                className={errors.stock ? 'border-red-500' : ''}
+                className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 ${errors.stock ? 'border-red-500' : ''}`}
               />
               {errors.stock && (
                 <p className="mt-1 text-sm text-red-600">{errors.stock.message}</p>
@@ -220,17 +231,15 @@ const ProductModal = ({ product, onClose }: ProductModalProps) => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Trạng thái</label>
-              <select {...register('status')}>
+              <select
+                {...register('status')}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+              >
                 <option value="active">Hoạt động</option>
                 <option value="inactive">Không hoạt động</option>
                 <option value="out_of_stock">Hết hàng</option>
                 <option value="discontinued">Ngừng kinh doanh</option>
               </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Tags (phân cách bằng dấu phẩy)</label>
-              <input {...register('tags')} placeholder="ví dụ: laptop, gaming, premium" />
             </div>
           </div>
 

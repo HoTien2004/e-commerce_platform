@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 import Layout from './components/Layout/Layout';
 import Home from './pages/Home';
@@ -12,6 +12,16 @@ import Shipping from './pages/Shipping';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 import NotFound from './pages/NotFound';
+import ProductList from './pages/ProductList';
+import ProductDetail from './pages/ProductDetail';
+import Cart from './pages/Cart';
+import Checkout from './pages/Checkout';
+import CheckoutSuccess from './pages/CheckoutSuccess';
+import News from './pages/News';
+import Promotions from './pages/Promotions';
+import LaptopGuide from './pages/LaptopGuide';
+import BuildPCGuide from './pages/BuildPCGuide';
+import FAQ from './pages/FAQ';
 import { useAuthStore } from './store/authStore';
 import { useModalStore } from './store/modalStore';
 
@@ -60,6 +70,34 @@ function App() {
       <Routes>
         <Route path="/" element={<Layout><Home /></Layout>} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/products" element={<Layout><ProductList /></Layout>} />
+        <Route path="/products/:slug" element={<Layout><ProductDetail /></Layout>} />
+        <Route path="/cart" element={<Layout><Cart /></Layout>} />
+        <Route path="/news" element={<Layout><News /></Layout>} />
+        <Route path="/promotions" element={<Layout><Promotions /></Layout>} />
+        <Route path="/guides/laptop" element={<Layout><LaptopGuide /></Layout>} />
+        <Route path="/guides/build-pc" element={<Layout><BuildPCGuide /></Layout>} />
+        <Route path="/faq" element={<Layout><FAQ /></Layout>} />
+        <Route
+          path="/checkout"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Checkout />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/checkout/success"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <CheckoutSuccess />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
         <Route path="/store" element={<Layout><Store /></Layout>} />
         <Route path="/help" element={<Layout><Help /></Layout>} />
         <Route path="/warranty" element={<Layout><Warranty /></Layout>} />

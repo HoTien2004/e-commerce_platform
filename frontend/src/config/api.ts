@@ -9,22 +9,39 @@ export const API_ENDPOINTS = {
   LOGIN: '/user/login',
   LOGOUT: '/user/logout',
   REFRESH_TOKEN: '/user/refresh-token',
-  
+
   // Profile
   GET_PROFILE: '/user/profile',
   UPDATE_PROFILE: '/user/profile',
   CHANGE_PASSWORD: '/user/password',
-  
+
   // Password Reset
   FORGOT_PASSWORD: '/user/forgot-password',
   VERIFY_RESET_OTP: '/user/verify-reset-otp',
   RESET_PASSWORD: '/user/reset-password',
-  
+
   // Avatar
   UPLOAD_AVATAR: '/user/avatar',
   DELETE_AVATAR: '/user/avatar',
-  
-  // Products (sẽ thêm sau)
+
+  // Products
   PRODUCTS: '/products',
+  PRODUCT_BY_ID: (id: string) => `/products/${id}`, // Can use ID or slug
+  PRODUCTS_FEATURED: '/products/featured',
+  PRODUCTS_BEST_SELLERS: '/products/best-sellers',
+  PRODUCTS_CATEGORIES: '/products/categories',
+  PRODUCTS_BRANDS: '/products/brands',
+  PRODUCTS_UPLOAD_IMAGES: '/products/upload-images',
+
+  // Cart
+  CART: '/cart',
+  CART_ADD: '/cart/add',
+  CART_UPDATE: '/cart/update',
+  CART_REMOVE: '/cart/remove',
+  CART_CLEAR: '/cart/clear',
+
+  // Promo Code
+  PROMO_CODE_VALIDATE: '/promo-code/validate',
+  PROMO_CODE_APPLY: '/promo-code/apply',
 } as const;
 

@@ -8,7 +8,9 @@ import {
     uploadProductImages,
     getCategories,
     getBrands,
-    getFeaturedProducts
+    getFeaturedProducts,
+    getBestSellers,
+    bulkCreateProducts
 } from "../controllers/productController";
 import { verifyToken, verifyAdmin } from "../middleware/authMiddleware";
 import { upload } from "../middleware/uploadMiddleware";
@@ -67,10 +69,6 @@ const productRouter = express.Router();
  *               type: number
  *             count:
  *               type: number
- *         tags:
- *           type: array
- *           items:
- *             type: string
  *         createdAt:
  *           type: string
  *           format: date-time
@@ -107,10 +105,6 @@ const productRouter = express.Router();
  *           type: string
  *           enum: [active, inactive, out_of_stock, discontinued]
  *           default: active
- *         tags:
- *           type: array
- *           items:
- *             type: string
  *         images:
  *           type: array
  *           items:
@@ -229,6 +223,44 @@ productRouter.get("/featured", getFeaturedProducts);
 
 /**
  * @swagger
+ * /api/products/best-sellers:
+ *   get:
+ *     summary: Get best selling products
+ *     description: Retrieve best selling products sorted by soldCount
+ *     tags: [Products]
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 8
+ *         description: Number of products to return
+ *     responses:
+ *       200:
+ *         description: Best sellers retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     products:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/Product'
+ *                     pagination:
+ *                       type: object
+ *       500:
+ *         description: Internal server error
+ */
+productRouter.get("/best-sellers", getBestSellers);
+
+/**
+ * @swagger
  * /api/products/categories:
  *   get:
  *     summary: Get all product categories
@@ -318,6 +350,72 @@ productRouter.get("/:id", getProductById);
  *         description: Internal server error
  */
 productRouter.post("/", verifyToken, verifyAdmin, createProduct);
+
+/**
+ * @swagger
+ * /api/products/bulk:
+ *   post:
+ *     summary: Bulk create products (Admin only)
+ *     description: Create multiple products at once. Maximum 100 products per request. Requires admin authentication.
+ *     tags: [Products]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - products
+ *             properties:
+ *               products:
+ *                 type: array
+ *                 maxItems: 100
+ *                 items:
+ *                   $ref: '#/components/schemas/CreateProductRequest'
+ *     responses:
+ *       201:
+ *         description: Bulk import completed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     total:
+ *                       type: number
+ *                     succeeded:
+ *                       type: number
+ *                     failed:
+ *                       type: number
+ *                     results:
+ *                       type: object
+ *                       properties:
+ *                         success:
+ *                           type: array
+ *                           items:
+ *                             type: object
+ *                         failed:
+ *                           type: array
+ *                           items:
+ *                             type: object
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden (Admin only)
+ *       500:
+ *         description: Internal server error
+ */
+productRouter.post("/bulk", verifyToken, verifyAdmin, bulkCreateProducts);
 
 /**
  * @swagger

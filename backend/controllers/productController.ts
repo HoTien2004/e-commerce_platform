@@ -57,8 +57,7 @@ export const getProducts = async (req: Request, res: Response): Promise<Response
         if (search) {
             filter.$or = [
                 { name: { $regex: search as string, $options: "i" } },
-                { description: { $regex: search as string, $options: "i" } },
-                { tags: { $in: [new RegExp(search as string, "i")] } }
+                { description: { $regex: search as string, $options: "i" } }
             ];
         }
 
@@ -158,7 +157,6 @@ export const createProduct = async (req: Request, res: Response): Promise<Respon
             brand,
             stock,
             status,
-            tags,
             images
         } = req.body;
 
@@ -221,7 +219,6 @@ export const createProduct = async (req: Request, res: Response): Promise<Respon
             brand: brand || "",
             stock: stock !== undefined ? stock : 0,
             status: finalStatus,
-            tags: tags || [],
             images: processedImages,
             updatedAt: new Date()
         });
@@ -527,7 +524,7 @@ export const getBrands = async (req: Request, res: Response): Promise<Response> 
     }
 };
 
-// Get featured products
+// Get featured products (sorted by rating)
 export const getFeaturedProducts = async (req: Request, res: Response): Promise<Response> => {
     try {
         const limit = parseInt(req.query.limit as string, 10) || 8;
@@ -540,10 +537,209 @@ export const getFeaturedProducts = async (req: Request, res: Response): Promise<
 
         return res.status(200).json({
             success: true,
-            data: products
+            data: {
+                products,
+                pagination: {
+                    page: 1,
+                    limit,
+                    total: products.length,
+                    pages: 1
+                }
+            }
         });
     } catch (error: any) {
         console.error("Error getting featured products:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error",
+            error: error.message
+        });
+    }
+};
+
+// Get best selling products (sorted by soldCount)
+export const getBestSellers = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const limit = parseInt(req.query.limit as string, 10) || 8;
+
+        const products = await productModel
+            .find({ status: "active" })
+            .sort({ soldCount: -1, createdAt: -1 })
+            .limit(limit)
+            .lean();
+
+        return res.status(200).json({
+            success: true,
+            data: {
+                products,
+                pagination: {
+                    page: 1,
+                    limit,
+                    total: products.length,
+                    pages: 1
+                }
+            }
+        });
+    } catch (error: any) {
+        console.error("Error getting best sellers:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error",
+            error: error.message
+        });
+    }
+};
+
+// Bulk create products (Admin only)
+export const bulkCreateProducts = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const { products } = req.body;
+
+        // Validate input
+        if (!products || !Array.isArray(products) || products.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Products array is required and must not be empty"
+            });
+        }
+
+        if (products.length > 100) {
+            return res.status(400).json({
+                success: false,
+                message: "Maximum 100 products can be created at once"
+            });
+        }
+
+        const results = {
+            success: [] as any[],
+            failed: [] as Array<{ index: number; name?: string; error: string }>
+        };
+
+        // Process each product
+        for (let i = 0; i < products.length; i++) {
+            const productData = products[i];
+
+            try {
+                // Validate required fields
+                if (!productData.name || productData.price === undefined || productData.price === null) {
+                    results.failed.push({
+                        index: i,
+                        name: productData.name || "Unknown",
+                        error: "Name and price are required"
+                    });
+                    continue;
+                }
+
+                // Validate price
+                if (typeof productData.price !== 'number' || productData.price < 0) {
+                    results.failed.push({
+                        index: i,
+                        name: productData.name,
+                        error: "Price must be a number >= 0"
+                    });
+                    continue;
+                }
+
+                // Validate originalPrice if provided
+                if (productData.originalPrice !== undefined && productData.originalPrice < productData.price) {
+                    results.failed.push({
+                        index: i,
+                        name: productData.name,
+                        error: "Original price must be >= price"
+                    });
+                    continue;
+                }
+
+                // Validate stock
+                if (productData.stock !== undefined && productData.stock < 0) {
+                    results.failed.push({
+                        index: i,
+                        name: productData.name,
+                        error: "Stock must be >= 0"
+                    });
+                    continue;
+                }
+
+                // Process images if provided
+                let processedImages: any[] = [];
+                if (productData.images && Array.isArray(productData.images) && productData.images.length > 0) {
+                    processedImages = productData.images.map((img: any, index: number) => ({
+                        url: img.url || img,
+                        publicId: img.publicId || null,
+                        isPrimary: index === 0
+                    }));
+                }
+
+                // Determine final status
+                let finalStatus = productData.status || "active";
+                if (productData.stock !== undefined && productData.stock === 0 && finalStatus === "active") {
+                    finalStatus = "out_of_stock";
+                }
+
+                // Create product
+                const product = new productModel({
+                    name: productData.name,
+                    description: productData.description || "",
+                    shortDescription: productData.shortDescription || "",
+                    price: productData.price,
+                    originalPrice: productData.originalPrice || undefined,
+                    category: productData.category || "",
+                    brand: productData.brand || "",
+                    stock: productData.stock !== undefined ? productData.stock : 0,
+                    status: finalStatus,
+                    images: processedImages,
+                    updatedAt: new Date()
+                });
+
+                // Generate slug
+                (product as any).generateSlug();
+
+                // Calculate discount
+                (product as any).calculateDiscount();
+
+                // Save product
+                await product.save();
+
+                results.success.push({
+                    index: i,
+                    id: product._id,
+                    name: product.name
+                });
+
+            } catch (error: any) {
+                // Handle duplicate slug error
+                if (error.code === 11000) {
+                    results.failed.push({
+                        index: i,
+                        name: productData.name || "Unknown",
+                        error: "Product with this name already exists (duplicate slug)"
+                    });
+                } else {
+                    results.failed.push({
+                        index: i,
+                        name: productData.name || "Unknown",
+                        error: error.message || "Unknown error"
+                    });
+                }
+            }
+        }
+
+        return res.status(201).json({
+            success: true,
+            message: `Bulk import completed: ${results.success.length} succeeded, ${results.failed.length} failed`,
+            data: {
+                total: products.length,
+                succeeded: results.success.length,
+                failed: results.failed.length,
+                results: {
+                    success: results.success,
+                    failed: results.failed
+                }
+            }
+        });
+
+    } catch (error: any) {
+        console.error("Error bulk creating products:", error);
         return res.status(500).json({
             success: false,
             message: "Internal server error",

@@ -86,7 +86,7 @@
 
 .ticker {
   display: inline-block;
-  animation: ticker-move 22s linear infinite;
+  animation: ticker-move 30s linear infinite;
 }
 
 /* Hide Leaflet attribution */

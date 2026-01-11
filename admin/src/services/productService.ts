@@ -23,7 +23,6 @@ export interface Product {
     average: number;
     count: number;
   };
-  tags: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -38,7 +37,6 @@ export interface CreateProductData {
   brand?: string;
   stock?: number;
   status?: 'active' | 'inactive' | 'out_of_stock' | 'discontinued';
-  tags?: string[];
   images?: Array<{
     url: string;
     publicId?: string;

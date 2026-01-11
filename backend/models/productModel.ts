@@ -57,6 +57,12 @@ const productSchema = new mongoose.Schema({
         default: 0,
         min: 0
     },
+    soldCount: {
+        type: Number,
+        default: 0,
+        min: 0,
+        index: true
+    },
     status: {
         type: String,
         enum: ["active", "inactive", "out_of_stock", "discontinued"],
@@ -67,10 +73,6 @@ const productSchema = new mongoose.Schema({
         average: { type: Number, default: 0, min: 0, max: 5 },
         count: { type: Number, default: 0, min: 0 }
     },
-    tags: [{
-        type: String,
-        trim: true
-    }],
     createdAt: {
         type: Date,
         default: Date.now
@@ -82,7 +84,7 @@ const productSchema = new mongoose.Schema({
 }, { minimize: false, timestamps: false });
 
 // Index for search
-productSchema.index({ name: "text", description: "text", tags: "text" });
+productSchema.index({ name: "text", description: "text" });
 
 // Helper method to generate slug
 productSchema.methods.generateSlug = function () {

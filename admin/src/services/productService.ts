@@ -6,7 +6,11 @@ export interface Product {
   name: string;
   slug: string;
   description: string;
-  shortDescription: string;
+  specifications?: Array<{
+    description: string;
+    quantity: string;
+    warranty: string;
+  }>;
   price: number;
   originalPrice?: number;
   discount: number;
@@ -30,7 +34,11 @@ export interface Product {
 export interface CreateProductData {
   name: string;
   description?: string;
-  shortDescription?: string;
+  specifications?: Array<{
+    description: string;
+    quantity: string;
+    warranty: string;
+  }>;
   price: number;
   originalPrice?: number;
   category?: string;
@@ -44,17 +52,19 @@ export interface CreateProductData {
   }>;
 }
 
-export interface UpdateProductData extends Partial<CreateProductData> {}
+export interface UpdateProductData extends Partial<CreateProductData> { }
 
 export interface ProductsResponse {
   success: boolean;
   data: {
     products: Product[];
     pagination: {
-      page: number;
-      limit: number;
-      total: number;
-      pages: number;
+      currentPage: number;
+      totalPages: number;
+      totalItems: number;
+      itemsPerPage: number;
+      hasNextPage: boolean;
+      hasPrevPage: boolean;
     };
   };
 }
@@ -81,6 +91,8 @@ export const productService = {
     brand?: string;
     search?: string;
     status?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
   }): Promise<ProductsResponse> => {
     const response = await api.get<ProductsResponse>(API_ENDPOINTS.PRODUCTS, { params });
     return response.data;

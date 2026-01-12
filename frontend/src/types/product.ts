@@ -4,7 +4,11 @@ export interface Product {
     name: string;
     slug: string;
     description: string;
-    shortDescription: string;
+    specifications?: Array<{
+        description: string;
+        quantity: string;
+        warranty: string;
+    }>;
     price: number;
     originalPrice?: number;
     discount: number;
@@ -31,10 +35,12 @@ export interface ProductsResponse {
     data: {
         products: Product[];
         pagination: {
-            page: number;
-            limit: number;
-            total: number;
-            pages: number;
+            currentPage: number;
+            totalPages: number;
+            totalItems: number;
+            itemsPerPage: number;
+            hasNextPage: boolean;
+            hasPrevPage: boolean;
         };
     };
 }

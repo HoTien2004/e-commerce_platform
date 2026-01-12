@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { FiStar, FiShoppingCart, FiPlus, FiMinus, FiCopy, FiCheck, FiMessageCircle, FiShield, FiHeadphones, FiDollarSign, FiPackage, FiRefreshCw } from 'react-icons/fi';
-import { FaFacebook } from 'react-icons/fa';
+import { FiStar, FiShoppingCart, FiPlus, FiMinus, FiCopy, FiCheck, FiMessageCircle, FiShield, FiHeadphones, FiDollarSign, FiPackage, FiRefreshCw, FiGrid, FiArrowRight } from 'react-icons/fi';
+import { FaFacebook, FaTiktok, FaTwitter, FaPinterest, FaFacebookMessenger } from 'react-icons/fa';
 import ProductCard from '../components/ProductCard';
 import { productService } from '../services/productService';
 import { cartService } from '../services/cartService';
@@ -20,6 +20,9 @@ const ProductDetail = () => {
   const [quantity, setQuantity] = useState(1);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
+  const thumbnailsRef = useRef<HTMLDivElement | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragState = useRef<{ startX: number; scrollLeft: number }>({ startX: 0, scrollLeft: 0 });
 
   useEffect(() => {
     if (slug) {
@@ -139,6 +142,72 @@ const ProductDetail = () => {
     window.open(`https://zalo.me/share?url=${url}`, '_blank');
   };
 
+  // Drag-to-scroll thumbnails (ẩn scrollbar, kéo ngang)
+  const handleThumbMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Chỉ kéo khi giữ chuột trái
+    if (e.button !== 0 || !thumbnailsRef.current) return;
+    setIsDragging(true);
+    dragState.current = {
+      startX: e.pageX - thumbnailsRef.current.offsetLeft,
+      scrollLeft: thumbnailsRef.current.scrollLeft,
+    };
+  };
+
+  const handleThumbMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDragging || !thumbnailsRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - thumbnailsRef.current.offsetLeft;
+    const walk = (x - dragState.current.startX) * 1.2; // tăng nhẹ độ nhạy
+    thumbnailsRef.current.scrollLeft = dragState.current.scrollLeft - walk;
+  };
+
+  const handleThumbMouseUp = () => setIsDragging(false);
+  const handleThumbMouseLeave = () => setIsDragging(false);
+
+  // Click thumbnail: đổi ảnh và auto lướt nhẹ để thumbnail được đưa về phía trái
+  const handleThumbnailClick = (index: number) => {
+    setSelectedImageIndex(index);
+
+    if (!thumbnailsRef.current) return;
+    const container = thumbnailsRef.current;
+
+    const thumbWidth = 80; // w-20 = 80px
+    const gap = 8; // gap-2 = 8px
+    const itemSize = thumbWidth + gap;
+
+    const visibleCount = Math.max(1, Math.floor(container.clientWidth / itemSize));
+
+    // Cho cảm giác "lướt" như mô tả: thumbnail được click sẽ trở thành item thứ 2 (index 1) nếu có thể
+    const targetFirstIndex = Math.max(0, Math.min(index - 1, (product?.images?.length || 0) - visibleCount));
+
+    const newScrollLeft = targetFirstIndex * itemSize;
+    container.scrollTo({ left: newScrollLeft, behavior: 'smooth' });
+  };
+
+  const handleShareTikTok = () => {
+    const url = encodeURIComponent(window.location.href);
+    const text = encodeURIComponent(product?.name || '');
+    window.open(`https://www.tiktok.com/share?url=${url}&text=${text}`, '_blank');
+  };
+
+  const handleShareX = () => {
+    const url = encodeURIComponent(window.location.href);
+    const text = encodeURIComponent(product?.name || '');
+    window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank');
+  };
+
+  const handleSharePinterest = () => {
+    const url = encodeURIComponent(window.location.href);
+    const media = product?.images?.[0]?.url ? encodeURIComponent(product.images[0].url) : '';
+    const description = encodeURIComponent(product?.name || '');
+    window.open(`https://pinterest.com/pin/create/button/?url=${url}&media=${media}&description=${description}`, '_blank');
+  };
+
+  const handleShareMessenger = () => {
+    const url = encodeURIComponent(window.location.href);
+    window.open(`https://www.facebook.com/dialog/send?link=${url}&app_id=YOUR_APP_ID`, '_blank');
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 py-8">
@@ -220,7 +289,7 @@ const ProductDetail = () => {
         </nav>
 
         {/* Product Info - 3 cột: Hình ảnh | Thông tin | Chính sách */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+        <div className="bg-gradient-to-br from-primary-50 via-white to-primary-50 rounded-lg shadow-sm border border-primary-200 p-6 mb-6">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Left: Images (4 cột) */}
             <div className="lg:col-span-4">
@@ -241,20 +310,27 @@ const ProductDetail = () => {
 
               {/* Thumbnails */}
               {product.images && product.images.length > 1 && (
-                <div className="flex gap-2 overflow-x-auto">
+                <div
+                  ref={thumbnailsRef}
+                  onMouseDown={handleThumbMouseDown}
+                  onMouseMove={handleThumbMouseMove}
+                  onMouseUp={handleThumbMouseUp}
+                  onMouseLeave={handleThumbMouseLeave}
+                  className={`flex gap-2 overflow-x-auto no-scrollbar select-none w-full max-w-[344px] mx-auto ${isDragging ? 'cursor-grabbing' : 'cursor-grab'
+                    }`}
+                >
                   {product.images.map((img, index) => (
                     <button
                       key={index}
-                      onClick={() => setSelectedImageIndex(index)}
-                      className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 ${selectedImageIndex === index
-                        ? 'border-primary-600'
-                        : 'border-gray-200'
+                      onClick={() => handleThumbnailClick(index)}
+                      className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 ${selectedImageIndex === index ? 'border-primary-600' : 'border-gray-200'
                         }`}
                     >
                       <img
                         src={img.url}
                         alt={`${product.name} ${index + 1}`}
                         className="w-full h-full object-cover"
+                        draggable={false}
                       />
                     </button>
                   ))}
@@ -267,8 +343,8 @@ const ProductDetail = () => {
               {/* Title */}
               <h1 className="text-3xl font-bold text-gray-900 mb-4 line-clamp-2">{product.name}</h1>
 
-              {/* Status & Brand */}
-              <div className="flex items-center gap-4 mb-4 text-sm">
+              {/* Status & Brand & Sold Count */}
+              <div className="flex flex-wrap items-center gap-4 mb-4 text-sm">
                 <div className="flex items-center gap-2">
                   <span className="text-gray-600">Tình trạng:</span>
                   {product.stock > 0 ? (
@@ -277,17 +353,19 @@ const ProductDetail = () => {
                     <span className="text-red-600 font-medium">Hết hàng</span>
                   )}
                 </div>
-                {product.brand && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-600">Thương hiệu:</span>
-                    <Link
-                      to={`/products?brand=${encodeURIComponent(product.brand)}`}
-                      className="text-primary-600 hover:text-primary-700 font-medium hover:underline"
-                    >
-                      {product.brand}
-                    </Link>
-                  </div>
-                )}
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-600">Thương hiệu:</span>
+                  <Link
+                    to={`/products?brand=${encodeURIComponent(product.brand || 'Custom')}`}
+                    className="text-primary-600 hover:text-primary-700 font-medium hover:underline"
+                  >
+                    {product.brand && product.brand.trim() !== '' ? product.brand : 'Custom'}
+                  </Link>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-600">Đã bán:</span>
+                  <span className="text-gray-900 font-medium">{(product.soldCount ?? 0).toLocaleString('vi-VN')}</span>
+                </div>
               </div>
 
               {/* Rating */}
@@ -347,17 +425,20 @@ const ProductDetail = () => {
                         <FiMinus className="w-4 h-4" />
                       </button>
                       <input
-                        type="number"
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
                         value={quantity}
                         onChange={(e) => {
-                          const val = parseInt(e.target.value) || 1;
-                          if (val >= 1 && val <= product.stock) {
-                            setQuantity(val);
+                          const numeric = parseInt(e.target.value.replace(/\D/g, ''), 10);
+                          if (!numeric) {
+                            setQuantity(1);
+                            return;
                           }
+                          const clamped = Math.min(Math.max(numeric, 1), product.stock);
+                          setQuantity(clamped);
                         }}
-                        min={1}
-                        max={product.stock}
-                        className="w-16 text-center border-0 focus:outline-none focus:ring-0"
+                        className="w-16 text-center border-0 focus:outline-none focus:ring-0 appearance-none"
                       />
                       <button
                         onClick={() => handleQuantityChange(1)}
@@ -390,25 +471,53 @@ const ProductDetail = () => {
 
               {/* Share */}
               <div className="border-t border-gray-200 pt-4">
-                <p className="text-sm font-medium text-gray-700 mb-2">Chia sẻ:</p>
-                <div className="flex items-center gap-2">
+                <p className="text-sm font-medium text-gray-700 mb-3">Chia sẻ:</p>
+                <div className="flex flex-wrap items-center gap-2">
                   <button
                     onClick={handleShareFacebook}
-                    className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    className="p-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                     title="Chia sẻ lên Facebook"
                   >
                     <FaFacebook className="w-5 h-5" />
                   </button>
                   <button
+                    onClick={handleShareMessenger}
+                    className="p-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                    title="Chia sẻ qua Messenger"
+                  >
+                    <FaFacebookMessenger className="w-5 h-5" />
+                  </button>
+                  <button
                     onClick={handleShareZalo}
-                    className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center"
+                    className="p-2.5 bg-blue-400 text-white rounded-lg hover:bg-blue-500 transition-colors"
                     title="Chia sẻ lên Zalo"
                   >
                     <FiMessageCircle className="w-5 h-5" />
                   </button>
                   <button
+                    onClick={handleShareX}
+                    className="p-2.5 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors"
+                    title="Chia sẻ lên X (Twitter)"
+                  >
+                    <FaTwitter className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={handleShareTikTok}
+                    className="p-2.5 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors"
+                    title="Chia sẻ lên TikTok"
+                  >
+                    <FaTiktok className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={handleSharePinterest}
+                    className="p-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                    title="Chia sẻ lên Pinterest"
+                  >
+                    <FaPinterest className="w-5 h-5" />
+                  </button>
+                  <button
                     onClick={handleCopyLink}
-                    className={`p-2 rounded-lg transition-colors ${linkCopied
+                    className={`p-2.5 rounded-lg transition-colors ${linkCopied
                       ? 'bg-green-600 text-white'
                       : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                       }`}
@@ -486,19 +595,78 @@ const ProductDetail = () => {
           </div>
         </div>
 
-        {/* Description - Full width */}
-        {product.description && (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Mô tả sản phẩm</h2>
-            <div className="prose max-w-none">
-              <p className="text-gray-700 whitespace-pre-line">{product.description}</p>
-            </div>
+        {/* Description + Specifications - chung 1 khối */}
+        {(product.description || (product.specifications && product.specifications.length > 0)) && (
+          <div className="bg-gradient-to-br from-primary-50 via-white to-primary-50 rounded-lg shadow-sm border border-primary-200 p-6 mb-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Mô tả chi tiết</h2>
+
+            {product.description && (
+              <div className="prose max-w-none mb-4">
+                <p className="text-base text-gray-700 whitespace-pre-line">{product.description}</p>
+              </div>
+            )}
+
+            {product.specifications && product.specifications.length > 0 && (
+              <div className="overflow-x-auto mt-4">
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">Thông số kỹ thuật</h3>
+                <table className="min-w-full border border-gray-200 divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-4 py-3 text-center text-xs font-semibold text-primary-600 uppercase tracking-wider w-16 border-r border-gray-200">
+                        STT
+                      </th>
+                      <th className="px-4 py-3 text-center text-xs font-semibold text-primary-600 uppercase tracking-wider border-r border-gray-200">
+                        Mô tả sản phẩm
+                      </th>
+                      <th className="px-4 py-3 text-center text-xs font-semibold text-primary-600 uppercase tracking-wider w-32 border-r border-gray-200">
+                        Số lượng
+                      </th>
+                      <th className="px-4 py-3 text-center text-xs font-semibold text-primary-600 uppercase tracking-wider w-32">
+                        Bảo hành
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {product.specifications.map((spec, index) => (
+                      <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                        <td className="px-4 py-3 whitespace-nowrap text-base font-semibold text-gray-900 text-center border-r border-gray-200">
+                          {index + 1}
+                        </td>
+                        <td className="px-4 py-3 text-base text-gray-800 text-center border-r border-gray-200">
+                          {spec.description}
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-base text-gray-800 text-center border-r border-gray-200">
+                          {spec.quantity}
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-base text-gray-800 text-center">
+                          {spec.warranty}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         )}
 
         {/* Related Products - Khối riêng */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Sản phẩm liên quan</h2>
+        <div className="bg-gradient-to-br from-purple-50 via-pink-50 to-indigo-50 rounded-lg shadow-sm border border-purple-200 p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+              <FiGrid className="w-6 h-6 text-purple-600" />
+              <span>Sản phẩm liên quan</span>
+            </h2>
+            {product.category && (
+              <Link
+                to={`/products?category=${encodeURIComponent(product.category)}`}
+                className="flex items-center gap-2 text-sm font-medium text-purple-600 hover:text-purple-700 transition-colors"
+              >
+                <span>Xem tất cả</span>
+                <FiArrowRight className="w-4 h-4" />
+              </Link>
+            )}
+          </div>
           {relatedProducts.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 md:gap-6">
               {relatedProducts.slice(0, 8).map((relatedProduct) => (

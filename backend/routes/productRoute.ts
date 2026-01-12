@@ -41,8 +41,6 @@ const productRouter = express.Router();
  *           type: string
  *         description:
  *           type: string
- *         shortDescription:
- *           type: string
  *         price:
  *           type: number
  *         originalPrice:
@@ -84,8 +82,6 @@ const productRouter = express.Router();
  *         name:
  *           type: string
  *         description:
- *           type: string
- *         shortDescription:
  *           type: string
  *         price:
  *           type: number

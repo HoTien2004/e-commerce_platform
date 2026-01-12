@@ -43,10 +43,10 @@ export const getProducts = async (req: Request, res: Response): Promise<Response
             }
         }
 
-        if (status) {
+        if (status && status !== "all") {
             filter.status = status;
-        } else {
-            // Default: only show active products for non-admin users
+        } else if (!status) {
+            // Default: only show active products for non-admin users (frontend client)
             const userId = (req as any).userId;
             if (!userId) {
                 filter.status = "active";
@@ -150,7 +150,7 @@ export const createProduct = async (req: Request, res: Response): Promise<Respon
         const {
             name,
             description,
-            shortDescription,
+            specifications,
             price,
             originalPrice,
             category,
@@ -208,11 +208,20 @@ export const createProduct = async (req: Request, res: Response): Promise<Respon
             finalStatus = "out_of_stock";
         }
 
+        // Process specifications if provided
+        let processedSpecifications: any[] = [];
+        if (specifications && Array.isArray(specifications)) {
+            processedSpecifications = specifications.filter(
+                (spec: any) => spec && spec.description && spec.quantity && spec.warranty && 
+                spec.description.trim() && spec.quantity.trim() && spec.warranty.trim()
+            );
+        }
+
         // Create product
         const product = new productModel({
             name,
             description: description || "",
-            shortDescription: shortDescription || "",
+            specifications: processedSpecifications,
             price,
             originalPrice: originalPrice || undefined,
             category: category || "",
@@ -305,6 +314,19 @@ export const updateProduct = async (req: Request, res: Response): Promise<Respon
                 publicId: img.publicId || null,
                 isPrimary: index === 0
             }));
+        }
+
+        // Process specifications if provided
+        if (updateData.specifications !== undefined) {
+            if (Array.isArray(updateData.specifications)) {
+                updateData.specifications = updateData.specifications.filter(
+                    (spec: any) => spec && spec.description && spec.quantity && spec.warranty && 
+                    spec.description.trim() && spec.quantity.trim() && spec.warranty.trim()
+                );
+            } else {
+                // If specifications is explicitly set to null or empty, allow it
+                updateData.specifications = [];
+            }
         }
 
         // Update status based on stock if stock is being updated
@@ -676,11 +698,20 @@ export const bulkCreateProducts = async (req: Request, res: Response): Promise<R
                     finalStatus = "out_of_stock";
                 }
 
+                // Process specifications if provided
+                let processedSpecifications: any[] = [];
+                if (productData.specifications && Array.isArray(productData.specifications)) {
+                    processedSpecifications = productData.specifications.filter(
+                        (spec: any) => spec && spec.description && spec.quantity && spec.warranty && 
+                        spec.description.trim() && spec.quantity.trim() && spec.warranty.trim()
+                    );
+                }
+
                 // Create product
                 const product = new productModel({
                     name: productData.name,
                     description: productData.description || "",
-                    shortDescription: productData.shortDescription || "",
+                    specifications: processedSpecifications,
                     price: productData.price,
                     originalPrice: productData.originalPrice || undefined,
                     category: productData.category || "",

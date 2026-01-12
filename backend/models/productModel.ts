@@ -17,11 +17,11 @@ const productSchema = new mongoose.Schema({
         type: String,
         default: ""
     },
-    shortDescription: {
-        type: String,
-        default: "",
-        maxlength: 200
-    },
+    specifications: [{
+        description: { type: String, required: true },
+        quantity: { type: String, required: true },
+        warranty: { type: String, required: true }
+    }],
     price: {
         type: Number,
         required: true,

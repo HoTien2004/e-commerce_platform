@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { FiPlus, FiEdit, FiTrash2, FiSearch, FiX } from 'react-icons/fi';
-import { productService, Product, CreateProductData } from '../services/productService';
+import { productService, Product } from '../services/productService';
 import toast from 'react-hot-toast';
 import ProductModal from '../components/ProductModal';
 
@@ -12,21 +12,26 @@ const Products = () => {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [sortBy, setSortBy] = useState<'createdAt' | 'name' | 'price'>('createdAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   useEffect(() => {
     fetchProducts();
-  }, [currentPage, searchTerm]);
+  }, [currentPage, searchTerm, sortBy, sortOrder]);
 
   const fetchProducts = async () => {
     try {
       setLoading(true);
       const response = await productService.getProducts({
         page: currentPage,
-        limit: 10,
+        limit: 15,
         search: searchTerm || undefined,
+        sortBy,
+        sortOrder,
+        status: 'all', // Admin: lấy tất cả trạng thái
       });
       setProducts(response.data.products);
-      setTotalPages(response.data.pagination.pages);
+      setTotalPages(response.data.pagination.totalPages);
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Lỗi khi tải danh sách sản phẩm');
     } finally {
@@ -78,9 +83,10 @@ const Products = () => {
         </button>
       </div>
 
-      {/* Search */}
-      <div className="mb-6">
-        <div className="relative max-w-md">
+      {/* Search & Sort */}
+      <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        {/* Search */}
+        <div className="relative max-w-md w-full">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <FiSearch className="h-5 w-5 text-gray-400" />
           </div>
@@ -105,6 +111,35 @@ const Products = () => {
               <FiX className="h-5 w-5 text-gray-400 hover:text-gray-600" />
             </button>
           )}
+        </div>
+
+        {/* Sort */}
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-600">Sắp xếp:</span>
+          <select
+            value={`${sortBy}_${sortOrder}`}
+            onChange={(e) => {
+              const value = e.target.value as
+                | 'createdAt_desc'
+                | 'createdAt_asc'
+                | 'name_asc'
+                | 'name_desc'
+                | 'price_asc'
+                | 'price_desc';
+              const [field, order] = value.split('_') as ['createdAt' | 'name' | 'price', 'asc' | 'desc'];
+              setSortBy(field);
+              setSortOrder(order);
+              setCurrentPage(1);
+            }}
+            className="text-sm"
+          >
+            <option value="createdAt_desc">Mới nhất</option>
+            <option value="createdAt_asc">Cũ nhất</option>
+            <option value="name_asc">Tên A → Z</option>
+            <option value="name_desc">Tên Z → A</option>
+            <option value="price_asc">Giá thấp → cao</option>
+            <option value="price_desc">Giá cao → thấp</option>
+          </select>
         </div>
       </div>
 
@@ -185,23 +220,22 @@ const Products = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
-                        className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                          product.status === 'active'
-                            ? 'bg-green-100 text-green-800'
-                            : product.status === 'out_of_stock'
+                        className={`px-2 py-1 text-xs font-semibold rounded-full ${product.status === 'active'
+                          ? 'bg-green-100 text-green-800'
+                          : product.status === 'out_of_stock'
                             ? 'bg-red-100 text-red-800'
                             : product.status === 'inactive'
-                            ? 'bg-gray-100 text-gray-800'
-                            : 'bg-yellow-100 text-yellow-800'
-                        }`}
+                              ? 'bg-gray-100 text-gray-800'
+                              : 'bg-yellow-100 text-yellow-800'
+                          }`}
                       >
                         {product.status === 'active'
                           ? 'Hoạt động'
                           : product.status === 'out_of_stock'
-                          ? 'Hết hàng'
-                          : product.status === 'inactive'
-                          ? 'Không hoạt động'
-                          : 'Ngừng kinh doanh'}
+                            ? 'Hết hàng'
+                            : product.status === 'inactive'
+                              ? 'Không hoạt động'
+                              : 'Ngừng kinh doanh'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -229,24 +263,51 @@ const Products = () => {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="bg-gray-50 px-6 py-4 flex items-center justify-between border-t border-gray-200">
-                <div className="text-sm text-gray-700">
-                  Trang {currentPage} / {totalPages}
+              <div className="bg-gray-50 px-6 py-4 flex flex-col items-center justify-center gap-3 border-t border-gray-200">
+                <div className="text-sm text-gray-700 text-center">
+                  Hiển thị {products.length} sản phẩm - Trang {currentPage} / {totalPages}
                 </div>
-                <div className="flex gap-2">
+                <div className="flex items-center gap-2">
                   <button
                     onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                     disabled={currentPage === 1}
-                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    Trước
+                    ← Trước
                   </button>
+                  {/* Page numbers */}
+                  <div className="flex gap-1">
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let pageNum;
+                      if (totalPages <= 5) {
+                        pageNum = i + 1;
+                      } else if (currentPage <= 3) {
+                        pageNum = i + 1;
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i;
+                      } else {
+                        pageNum = currentPage - 2 + i;
+                      }
+                      return (
+                        <button
+                          key={pageNum}
+                          onClick={() => setCurrentPage(pageNum)}
+                          className={`px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium transition-colors ${currentPage === pageNum
+                            ? 'bg-primary-600 text-white border-primary-600'
+                            : 'text-gray-700 hover:bg-gray-50'
+                            }`}
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    })}
+                  </div>
                   <button
                     onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                     disabled={currentPage === totalPages}
-                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    Sau
+                    Sau →
                   </button>
                 </div>
               </div>

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { FiX, FiUpload, FiTrash2 } from 'react-icons/fi';
+import { FiX, FiUpload, FiTrash2, FiPlus } from 'react-icons/fi';
 import { productService, Product, CreateProductData } from '../services/productService';
 import { PRODUCT_CATEGORIES } from '../constants/categories';
 import toast from 'react-hot-toast';
@@ -10,13 +10,12 @@ import toast from 'react-hot-toast';
 const productSchema = z.object({
   name: z.string().min(1, 'Tên sản phẩm không được để trống'),
   description: z.string().optional(),
-  shortDescription: z.string().optional(),
   price: z.number().min(0, 'Giá phải lớn hơn hoặc bằng 0'),
   originalPrice: z.number().min(0).optional(),
   category: z.string().optional(),
   brand: z.string().optional(),
-  stock: z.number().min(0, 'Tồn kho phải lớn hơn hoặc bằng 0').default(0),
-  status: z.enum(['active', 'inactive', 'out_of_stock', 'discontinued']).default('active'),
+  stock: z.number().min(0, 'Tồn kho phải lớn hơn hoặc bằng 0').optional(),
+  status: z.enum(['active', 'inactive', 'out_of_stock', 'discontinued']).optional(),
 });
 
 type ProductFormData = z.infer<typeof productSchema>;
@@ -32,19 +31,20 @@ const ProductModal = ({ product, onClose }: ProductModalProps) => {
   const [images, setImages] = useState<Array<{ url: string; publicId?: string; isPrimary: boolean }>>(
     product?.images || []
   );
+  const [specifications, setSpecifications] = useState<Array<{ description: string; quantity: string; warranty: string }>>(
+    product?.specifications || []
+  );
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     reset,
-    setValue,
   } = useForm<ProductFormData>({
     resolver: zodResolver(productSchema),
     defaultValues: {
       name: product?.name || '',
       description: product?.description || '',
-      shortDescription: product?.shortDescription || '',
       price: product?.price || 0,
       originalPrice: product?.originalPrice || undefined,
       category: product?.category || '',
@@ -59,7 +59,6 @@ const ProductModal = ({ product, onClose }: ProductModalProps) => {
       reset({
         name: product.name,
         description: product.description,
-        shortDescription: product.shortDescription,
         price: product.price,
         originalPrice: product.originalPrice,
         category: product.category,
@@ -68,6 +67,7 @@ const ProductModal = ({ product, onClose }: ProductModalProps) => {
         status: product.status,
       });
       setImages(product.images || []);
+      setSpecifications(product.specifications || []);
     }
   }, [product, reset]);
 
@@ -106,13 +106,30 @@ const ProductModal = ({ product, onClose }: ProductModalProps) => {
     );
   };
 
+  const handleAddSpecification = () => {
+    setSpecifications([...specifications, { description: '', quantity: '', warranty: '' }]);
+  };
+
+  const handleRemoveSpecification = (index: number) => {
+    setSpecifications(specifications.filter((_, i) => i !== index));
+  };
+
+  const handleSpecificationChange = (index: number, field: 'description' | 'quantity' | 'warranty', value: string) => {
+    const updated = specifications.map((spec, i) =>
+      i === index ? { ...spec, [field]: value } : spec
+    );
+    setSpecifications(updated);
+  };
+
   const onSubmit = async (data: ProductFormData) => {
     try {
       setIsLoading(true);
       const productData: CreateProductData = {
         name: data.name,
         description: data.description,
-        shortDescription: data.shortDescription,
+        specifications: specifications.filter(spec =>
+          spec.description.trim() && spec.quantity.trim() && spec.warranty.trim()
+        ),
         price: data.price,
         originalPrice: data.originalPrice,
         category: data.category,
@@ -243,16 +260,7 @@ const ProductModal = ({ product, onClose }: ProductModalProps) => {
             </div>
           </div>
 
-          {/* Descriptions */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Mô tả ngắn</label>
-            <textarea
-              {...register('shortDescription')}
-              rows={2}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-            />
-          </div>
-
+          {/* Description */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Mô tả chi tiết</label>
             <textarea
@@ -260,6 +268,64 @@ const ProductModal = ({ product, onClose }: ProductModalProps) => {
               rows={4}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
             />
+          </div>
+
+          {/* Specifications */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-medium text-gray-700">Thông số kỹ thuật</label>
+              <button
+                type="button"
+                onClick={handleAddSpecification}
+                className="flex items-center gap-1 px-3 py-1 text-sm text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-lg transition-colors"
+              >
+                <FiPlus className="w-4 h-4" />
+                <span>Thêm thông số</span>
+              </button>
+            </div>
+            <div className="space-y-2">
+              {specifications.map((spec, index) => (
+                <div key={index} className="flex gap-2 items-center">
+                  <div className="w-10 text-sm font-medium text-gray-600 text-center">
+                    {index + 1}
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Mô tả sản phẩm *"
+                    value={spec.description}
+                    onChange={(e) => handleSpecificationChange(index, 'description', e.target.value)}
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    required
+                  />
+                  <input
+                    type="text"
+                    placeholder="Số lượng *"
+                    value={spec.quantity}
+                    onChange={(e) => handleSpecificationChange(index, 'quantity', e.target.value)}
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    required
+                  />
+                  <input
+                    type="text"
+                    placeholder="Bảo hành (BH) *"
+                    value={spec.warranty}
+                    onChange={(e) => handleSpecificationChange(index, 'warranty', e.target.value)}
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveSpecification(index)}
+                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                  >
+                    <FiTrash2 className="w-5 h-5" />
+                  </button>
+                </div>
+              ))}
+              {specifications.length === 0 && (
+                <p className="text-sm text-gray-500 italic">Chưa có thông số kỹ thuật. Nhấn "Thêm thông số" để thêm.</p>
+              )}
+            </div>
           </div>
 
           {/* Images */}

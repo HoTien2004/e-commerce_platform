@@ -49,7 +49,7 @@ const importProducts = async (): Promise<void> => {
     try {
         // Read JSON file
         const jsonPath = path.join(process.cwd(), "SAMPLE_PRODUCTS_20.json");
-        
+
         if (!fs.existsSync(jsonPath)) {
             throw new Error(`File not found: ${jsonPath}`);
         }
@@ -69,7 +69,7 @@ const importProducts = async (): Promise<void> => {
         // Import each product
         for (let i = 0; i < products.length; i++) {
             const productData = products[i];
-            
+
             try {
                 // Validate required fields
                 if (!productData.name || productData.price === undefined || productData.price === null) {
@@ -96,7 +96,6 @@ const importProducts = async (): Promise<void> => {
                 const product = new productModel({
                     name: productData.name,
                     description: productData.description || "",
-                    shortDescription: productData.shortDescription || "",
                     price: productData.price,
                     originalPrice: productData.originalPrice || undefined,
                     category: productData.category || "",

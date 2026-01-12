@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { scrollToTop } from '../../utils/scrollToTop';
 import {
   FiFacebook,
   FiTwitter,
@@ -83,18 +84,39 @@ const Footer = () => {
               <h4 className="text-xl font-semibold mb-3 text-foreground">Danh mục</h4>
               <ul className="space-y-2.5 text-base">
                 <li>
-                  <Link to="/laptops" className="text-secondary-700 hover:text-primary-600 transition-colors">
-                    Laptop chính hãng
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/pcs" className="text-secondary-700 hover:text-primary-600 transition-colors">
+                  <Link 
+                    to="/products?search=pc" 
+                    onClick={scrollToTop}
+                    className="text-secondary-700 hover:text-primary-600 transition-colors"
+                  >
                     PC chính hãng
                   </Link>
                 </li>
                 <li>
-                  <Link to="/accessories" className="text-secondary-700 hover:text-primary-600 transition-colors">
+                  <Link 
+                    to="/products?search=laptop" 
+                    onClick={scrollToTop}
+                    className="text-secondary-700 hover:text-primary-600 transition-colors"
+                  >
+                    Laptop chính hãng
+                  </Link>
+                </li>
+                <li>
+                  <Link 
+                    to="/products?category=Phụ kiện" 
+                    onClick={scrollToTop}
+                    className="text-secondary-700 hover:text-primary-600 transition-colors"
+                  >
                     Phụ kiện chính hãng
+                  </Link>
+                </li>
+                <li>
+                  <Link 
+                    to="/products?category=Linh kiện máy tính" 
+                    onClick={scrollToTop}
+                    className="text-secondary-700 hover:text-primary-600 transition-colors"
+                  >
+                    Linh kiện chính hãng
                   </Link>
                 </li>
               </ul>

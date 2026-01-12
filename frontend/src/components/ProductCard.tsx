@@ -68,8 +68,10 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
 
       {/* Content */}
       <div className="p-4 flex-1 flex flex-col">
-        {/* Brand */}
-        <p className="text-xs text-gray-500 mb-1">{product.brand}</p>
+        {/* Brand - Luôn hiển thị, nếu không có thì là Custom */}
+        <p className="text-xs text-gray-500 mb-1 min-h-[16px]">
+          {product.brand && product.brand.trim() !== '' ? product.brand : 'Custom'}
+        </p>
 
         {/* Name */}
         <h3 className="text-sm font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-primary-600 transition-colors">
@@ -97,12 +99,21 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
           </div>
         )}
 
-        {/* Price */}
+        {/* Price & Sold Count */}
         <div className="mt-auto">
           <div className="flex flex-col">
-            <span className="text-lg font-bold text-primary-600">
-              {product.price.toLocaleString('vi-VN')}₫
-            </span>
+            {/* Price và Sold Count cùng hàng */}
+            <div className="flex items-center justify-between gap-2 mb-1">
+              <span className="text-lg font-bold text-primary-600">
+                {product.price.toLocaleString('vi-VN')}₫
+              </span>
+              <span className="text-xs text-gray-500 whitespace-nowrap">
+                Đã bán:{' '}
+                <span className="font-medium text-gray-700">
+                  {(product.soldCount ?? 0).toLocaleString('vi-VN')}
+                </span>
+              </span>
+            </div>
             {product.originalPrice && product.originalPrice > product.price && (
               <span className="text-sm text-gray-500 line-through">
                 {product.originalPrice.toLocaleString('vi-VN')}₫

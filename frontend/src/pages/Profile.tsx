@@ -7,6 +7,7 @@ import type { UpdateProfileRequest, ChangePasswordRequest } from '../services/pr
 import { useAuthStore } from '../store/authStore';
 import toast from 'react-hot-toast';
 import { FiUser, FiMail, FiPhone, FiMapPin, FiCamera, FiTrash2, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
+import { scrollToTop } from '../utils/scrollToTop';
 
 const profileSchema = z.object({
   firstName: z.string().min(1, 'Vui lòng nhập tên'),
@@ -107,6 +108,7 @@ const Profile = () => {
       if (response.success) {
         setUser(response.data.user);
         toast.success('Cập nhật thông tin thành công!');
+        scrollToTop();
       }
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Cập nhật thông tin thất bại');
@@ -131,6 +133,7 @@ const Profile = () => {
         setShowCurrentPassword(false);
         setShowNewPassword(false);
         setShowConfirmPassword(false);
+        scrollToTop();
       }
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Đổi mật khẩu thất bại');

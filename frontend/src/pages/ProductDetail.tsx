@@ -6,13 +6,15 @@ import ProductCard from '../components/ProductCard';
 import { productService } from '../services/productService';
 import { cartService } from '../services/cartService';
 import { useCartStore } from '../store/cartStore';
+import { useCartModalStore } from '../store/cartModalStore';
 import type { Product } from '../types/product';
 import toast from 'react-hot-toast';
 
 const ProductDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const { addItem, setLoading: setCartLoading } = useCartStore();
+  const { setCart, setLoading: setCartLoading } = useCartStore();
+  const { addModal } = useCartModalStore();
   const [product, setProduct] = useState<Product | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -80,16 +82,16 @@ const ProductDetail = () => {
         quantity,
       });
 
-      // Update cart store
-      addItem(response.data.items[response.data.items.length - 1]);
-      setCartLoading(false);
+      // Update cart store with the complete cart from backend
+      setCart(response.data);
 
-      toast.success(`Đã thêm ${quantity} "${product.name}" vào giỏ hàng`);
+      // Show modal using store
+      addModal(product, quantity);
     } catch (error: any) {
-      setCartLoading(false);
-      toast.error(error.message || 'Lỗi khi thêm vào giỏ hàng');
+      toast.error(error.response?.data?.message || error.message || 'Lỗi khi thêm vào giỏ hàng');
     } finally {
       setIsAddingToCart(false);
+      setCartLoading(false);
     }
   };
 
@@ -106,14 +108,15 @@ const ProductDetail = () => {
         quantity: 1,
       });
 
-      // Update cart store
-      addItem(response.data.items[response.data.items.length - 1]);
-      setCartLoading(false);
+      // Update cart store with the complete cart from backend
+      setCart(response.data);
 
-      toast.success(`Đã thêm "${relatedProduct.name}" vào giỏ hàng`);
+      // Show modal using store
+      addModal(relatedProduct, 1);
     } catch (error: any) {
+      toast.error(error.response?.data?.message || error.message || 'Lỗi khi thêm vào giỏ hàng');
+    } finally {
       setCartLoading(false);
-      toast.error(error.message || 'Lỗi khi thêm vào giỏ hàng');
     }
   };
 

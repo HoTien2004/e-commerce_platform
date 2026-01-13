@@ -1,6 +1,12 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
+export interface UserAddress {
+    _id: string;
+    address: string;
+    isDefault: boolean;
+}
+
 interface User {
     id: string;
     firstName: string;
@@ -8,7 +14,8 @@ interface User {
     email: string;
     gender?: 'male' | 'female' | 'other';
     phone?: string;
-    address?: string;
+    address?: string; // Keep for backward compatibility
+    addresses?: UserAddress[]; // New: array of addresses
     role: string;
     avatar?: string;
 }

@@ -1,5 +1,5 @@
 import express from "express";
-import { loginUser, logoutUser, registerUser, verifyOTPAndRegister, resendOTP, forgotPassword, verifyResetPasswordOTP, resetPassword, refreshAccessToken, getUserProfile, updateUserProfile, changePassword, uploadAvatar, deleteAvatar } from "../controllers/userController";
+import { loginUser, logoutUser, registerUser, verifyOTPAndRegister, resendOTP, forgotPassword, verifyResetPasswordOTP, resetPassword, refreshAccessToken, getUserProfile, updateUserProfile, changePassword, uploadAvatar, deleteAvatar, addAddress, updateAddress, deleteAddress, setDefaultAddress, getAllUsers } from "../controllers/userController";
 import { verifyToken } from "../middleware/authMiddleware";
 import { upload } from "../middleware/uploadMiddleware";
 
@@ -818,5 +818,166 @@ userRouter.post("/avatar", verifyToken, upload.single("avatar"), uploadAvatar);
  *         description: Server error
  */
 userRouter.delete("/avatar", verifyToken, deleteAvatar);
+
+/**
+ * @swagger
+ * /api/user/addresses:
+ *   post:
+ *     summary: "Add new address"
+ *     description: Add a new address to user's address list. First address will be set as default automatically.
+ *     tags: [User]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - address
+ *             properties:
+ *               address:
+ *                 type: string
+ *                 example: "123 Main Street, Ho Chi Minh City"
+ *     responses:
+ *       200:
+ *         description: Address added successfully
+ *       400:
+ *         description: Address already exists or validation error
+ *       401:
+ *         description: Invalid token
+ */
+userRouter.post("/addresses", verifyToken, addAddress);
+
+/**
+ * @swagger
+ * /api/user/addresses/{addressId}:
+ *   put:
+ *     summary: "Update address"
+ *     description: Update an existing address by ID.
+ *     tags: [User]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: addressId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - address
+ *             properties:
+ *               address:
+ *                 type: string
+ *                 example: "456 New Street, Ho Chi Minh City"
+ *     responses:
+ *       200:
+ *         description: Address updated successfully
+ *       400:
+ *         description: Address already exists or validation error
+ *       401:
+ *         description: Invalid token
+ *       404:
+ *         description: Address not found
+ */
+userRouter.put("/addresses/:addressId", verifyToken, updateAddress);
+
+/**
+ * @swagger
+ * /api/user/addresses/{addressId}:
+ *   delete:
+ *     summary: "Delete address"
+ *     description: Delete an address by ID. Cannot delete default address.
+ *     tags: [User]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: addressId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Address deleted successfully
+ *       400:
+ *         description: Cannot delete default address
+ *       401:
+ *         description: Invalid token
+ *       404:
+ *         description: Address not found
+ */
+userRouter.delete("/addresses/:addressId", verifyToken, deleteAddress);
+
+/**
+ * @swagger
+ * /api/user/addresses/{addressId}/default:
+ *   put:
+ *     summary: "Set default address"
+ *     description: Set an address as default. This will unset other default addresses.
+ *     tags: [User]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: addressId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Default address set successfully
+ *       401:
+ *         description: Invalid token
+ *       404:
+ *         description: Address not found
+ */
+userRouter.put("/addresses/:addressId/default", verifyToken, setDefaultAddress);
+
+/**
+ * @swagger
+ * /api/user/all:
+ *   get:
+ *     summary: Get all users (admin only)
+ *     description: Retrieve a paginated list of all users. Admin can filter by role and search by email/name.
+ *     tags: [User]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Search by email, firstName, or lastName
+ *       - in: query
+ *         name: role
+ *         schema:
+ *           type: string
+ *           enum: [user, admin]
+ *         description: Filter by user role
+ *     responses:
+ *       200:
+ *         description: List of users
+ *       403:
+ *         description: Access denied (admin only)
+ */
+userRouter.get("/all", verifyToken, getAllUsers);
 
 export default userRouter;

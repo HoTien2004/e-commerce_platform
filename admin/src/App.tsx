@@ -6,6 +6,9 @@ import AdminLayout from './components/Layout/AdminLayout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Products from './pages/Products';
+import Orders from './pages/Orders';
+import Users from './pages/Users';
+import PromoCodes from './pages/PromoCodes';
 
 // Scroll to top on route change
 const ScrollToTop = () => {
@@ -28,7 +31,7 @@ function App() {
         {/* Public Routes */}
         <Route
           path="/login"
-          element={isAuthenticated ? <Navigate to="/" replace /> : <Login />}
+          element={<Login />}
         />
 
         {/* Protected Routes */}
@@ -57,10 +60,7 @@ function App() {
           element={
             <ProtectedRoute>
               <AdminLayout>
-                <div className="p-6">
-                  <h1 className="text-3xl font-bold text-gray-900 mb-6">Quản lý đơn hàng</h1>
-                  <p className="text-gray-500">Tính năng đang được phát triển...</p>
-                </div>
+                <Orders />
               </AdminLayout>
             </ProtectedRoute>
           }
@@ -70,10 +70,17 @@ function App() {
           element={
             <ProtectedRoute>
               <AdminLayout>
-                <div className="p-6">
-                  <h1 className="text-3xl font-bold text-gray-900 mb-6">Quản lý người dùng</h1>
-                  <p className="text-gray-500">Tính năng đang được phát triển...</p>
-                </div>
+                <Users />
+              </AdminLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/promo-codes"
+          element={
+            <ProtectedRoute>
+              <AdminLayout>
+                <PromoCodes />
               </AdminLayout>
             </ProtectedRoute>
           }

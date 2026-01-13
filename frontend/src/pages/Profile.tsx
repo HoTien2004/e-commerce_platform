@@ -3,11 +3,12 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { profileService } from '../services/profileService';
-import type { UpdateProfileRequest, ChangePasswordRequest } from '../services/profileService';
+import type { UpdateProfileRequest, ChangePasswordRequest, UserAddress } from '../services/profileService';
 import { useAuthStore } from '../store/authStore';
 import toast from 'react-hot-toast';
-import { FiUser, FiMail, FiPhone, FiMapPin, FiCamera, FiTrash2, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
+import { FiUser, FiMail, FiPhone, FiCamera, FiTrash2, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
 import { scrollToTop } from '../utils/scrollToTop';
+import AddressManager from '../components/AddressManager';
 
 const profileSchema = z.object({
   firstName: z.string().min(1, 'Vui lòng nhập tên'),
@@ -15,7 +16,7 @@ const profileSchema = z.object({
   email: z.string().email('Email không hợp lệ'),
   gender: z.enum(['male', 'female', 'other']).optional(),
   phone: z.string().optional(),
-  address: z.string().optional(),
+  address: z.string().optional(), // Keep for backward compatibility, but not used in form anymore
 });
 
 const passwordSchema = z
@@ -47,6 +48,8 @@ const Profile = () => {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [addresses, setAddresses] = useState<UserAddress[]>([]);
+  const [isAddressLoading, setIsAddressLoading] = useState(false);
 
   const profileForm = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
@@ -78,6 +81,10 @@ const Profile = () => {
         phone: user.phone || '',
         address: user.address || '',
       });
+      // Load addresses from user data
+      if (user.addresses) {
+        setAddresses(user.addresses);
+      }
     }
   }, [user]);
 
@@ -86,9 +93,53 @@ const Profile = () => {
       const response = await profileService.getProfile();
       if (response.success && response.data.user) {
         setUser(response.data.user);
+        if (response.data.user.addresses) {
+          setAddresses(response.data.user.addresses);
+        }
       }
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Không thể tải thông tin tài khoản');
+    }
+  };
+
+  // Address management handlers
+  const handleAddAddress = async (address: string) => {
+    setIsAddressLoading(true);
+    try {
+      await profileService.addAddress(address);
+      await loadProfile(); // Reload profile to get updated addresses
+    } finally {
+      setIsAddressLoading(false);
+    }
+  };
+
+  const handleUpdateAddress = async (id: string, address: string) => {
+    setIsAddressLoading(true);
+    try {
+      await profileService.updateAddress(id, address);
+      await loadProfile(); // Reload profile to get updated addresses
+    } finally {
+      setIsAddressLoading(false);
+    }
+  };
+
+  const handleDeleteAddress = async (id: string) => {
+    setIsAddressLoading(true);
+    try {
+      await profileService.deleteAddress(id);
+      await loadProfile(); // Reload profile to get updated addresses
+    } finally {
+      setIsAddressLoading(false);
+    }
+  };
+
+  const handleSetDefault = async (id: string) => {
+    setIsAddressLoading(true);
+    try {
+      await profileService.setDefaultAddress(id);
+      await loadProfile(); // Reload profile to get updated addresses
+    } finally {
+      setIsAddressLoading(false);
     }
   };
 
@@ -101,7 +152,7 @@ const Profile = () => {
         // Email không được phép thay đổi
         gender: data.gender,
         phone: data.phone || undefined,
-        address: data.address || undefined,
+        // Address is now managed separately through AddressManager
       };
 
       const response = await profileService.updateProfile(updateData);
@@ -368,18 +419,14 @@ const Profile = () => {
                   />
                 </div>
 
-                <div>
-                  <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-2">
-                    <FiMapPin className="inline w-4 h-4 mr-1 mb-1" />
-                    Địa chỉ
-                  </label>
-                  <input
-                    {...profileForm.register('address')}
-                    type="text"
-                    className="input-primary"
-                    placeholder="Địa chỉ"
-                  />
-                </div>
+                <AddressManager
+                  addresses={addresses}
+                  onAddAddress={handleAddAddress}
+                  onUpdateAddress={handleUpdateAddress}
+                  onDeleteAddress={handleDeleteAddress}
+                  onSetDefault={handleSetDefault}
+                  isLoading={isAddressLoading}
+                />
 
                 <div className="flex justify-end pt-4">
                   <button

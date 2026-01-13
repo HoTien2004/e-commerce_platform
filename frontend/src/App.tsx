@@ -5,6 +5,7 @@ import Home from './pages/Home';
 import ForgotPassword from './pages/ForgotPassword';
 import Profile from './pages/Profile';
 import Orders from './pages/Orders';
+import OrderDetail from './pages/OrderDetail';
 import Store from './pages/Store';
 import Help from './pages/Help';
 import Warranty from './pages/Warranty';
@@ -120,6 +121,16 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <Orders />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/orders/:orderNumber"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <OrderDetail />
               </Layout>
             </ProtectedRoute>
           }

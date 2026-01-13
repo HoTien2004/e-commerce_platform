@@ -3,6 +3,7 @@ import Header from './Header';
 import Footer from './Footer';
 import { Toaster } from 'react-hot-toast';
 import AuthModal from '../Modal/AuthModal';
+import CartSuccessModalStack from '../CartSuccessModalStack';
 import { useModalStore } from '../../store/modalStore';
 
 interface LayoutProps {
@@ -18,6 +19,7 @@ const Layout = ({ children }: LayoutProps) => {
       <main className="flex-grow">{children}</main>
       <Footer />
       <Toaster position="top-right" />
+      <CartSuccessModalStack />
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={closeAuthModal}

@@ -1,5 +1,10 @@
 import mongoose from "mongoose";
 
+const addressSchema = new mongoose.Schema({
+    address: { type: String, required: true },
+    isDefault: { type: Boolean, default: false },
+}, { _id: true });
+
 const userSchema = new mongoose.Schema({
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
@@ -7,7 +12,8 @@ const userSchema = new mongoose.Schema({
     password: { type: String, required: true },
     gender: { type: String, enum: ["male", "female", "other"], default: null },
     phone: { type: String, default: null },
-    address: { type: String, default: null },
+    address: { type: String, default: null }, // Keep for backward compatibility
+    addresses: [addressSchema], // New: array of addresses
     role: { type: String, enum: ["user", "admin"], default: "user" },// Protected admin cannot be deleted
     refreshToken: { type: String, default: null },
     avatar: { type: String, default: null }, // Cloudinary URL

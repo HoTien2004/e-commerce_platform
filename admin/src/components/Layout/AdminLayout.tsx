@@ -10,6 +10,7 @@ import {
   FiMenu,
   FiX,
   FiUser,
+  FiTag,
 } from 'react-icons/fi';
 import { useAuthStore } from '../../store/authStore';
 import { authService } from '../../services/authService';
@@ -43,6 +44,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
     { icon: FiPackage, label: 'Sản phẩm', path: '/products' },
     { icon: FiShoppingBag, label: 'Đơn hàng', path: '/orders' },
     { icon: FiUsers, label: 'Người dùng', path: '/users' },
+    { icon: FiTag, label: 'Mã khuyến mãi', path: '/promo-codes' },
     { icon: FiSettings, label: 'Cài đặt', path: '/settings' },
   ];
 

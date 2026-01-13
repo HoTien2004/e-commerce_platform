@@ -22,6 +22,7 @@ import ProductCard from '../components/ProductCard';
 import { productService } from '../services/productService';
 import { cartService } from '../services/cartService';
 import { useCartStore } from '../store/cartStore';
+import { useCartModalStore } from '../store/cartModalStore';
 import type { Product } from '../types/product';
 import toast from 'react-hot-toast';
 
@@ -54,7 +55,8 @@ const heroSlides = [
 
 
 const Home = () => {
-  const { addItem, setLoading: setCartLoading } = useCartStore();
+  const { setCart, setLoading: setCartLoading } = useCartStore();
+  const { addModal } = useCartModalStore();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [promotions, setPromotions] = useState<Product[]>([]);
   const [bestSellers, setBestSellers] = useState<Product[]>([]);
@@ -128,13 +130,15 @@ const Home = () => {
         quantity: 1,
       });
 
-      addItem(response.data.items[response.data.items.length - 1]);
-      setCartLoading(false);
+      // Update cart store with the complete cart from backend
+      setCart(response.data);
 
-      toast.success(`Đã thêm "${product.name}" vào giỏ hàng`);
+      // Show modal using store
+      addModal(product, 1);
     } catch (error: any) {
+      toast.error(error.response?.data?.message || error.message || 'Lỗi khi thêm vào giỏ hàng');
+    } finally {
       setCartLoading(false);
-      toast.error(error.message || 'Lỗi khi thêm vào giỏ hàng');
     }
   };
 

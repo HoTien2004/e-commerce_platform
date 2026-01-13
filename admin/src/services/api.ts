@@ -34,9 +34,10 @@ api.interceptors.response.use(
       try {
         const refreshToken = localStorage.getItem('refreshToken');
         if (!refreshToken) {
+          // Clear tokens and let ProtectedRoute handle redirect
           localStorage.removeItem('accessToken');
           localStorage.removeItem('refreshToken');
-          window.location.href = '/login';
+          // Don't redirect here - let the component handle it
           return Promise.reject(error);
         }
 
@@ -55,9 +56,10 @@ api.interceptors.response.use(
         }
         return api(originalRequest);
       } catch (refreshError) {
+        // Clear tokens and let ProtectedRoute handle redirect
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
-        window.location.href = '/login';
+        // Don't redirect here - let the component handle it
         return Promise.reject(refreshError);
       }
     }

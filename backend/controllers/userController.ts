@@ -443,7 +443,8 @@ const getUserProfile = async (req: Request, res: Response): Promise<Response> =>
                     email: user.email,
                     gender: user.gender,
                     phone: user.phone,
-                    address: user.address,
+                    address: user.address, // Keep for backward compatibility
+                    addresses: user.addresses || [], // New: array of addresses
                     avatar: user.avatar
                 }
             }
@@ -1013,6 +1014,337 @@ const deleteAvatar = async (req: Request, res: Response): Promise<Response> => {
     }
 }
 
+// Add new address
+const addAddress = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const userId = (req as any).userId;
+        const { address } = req.body;
+
+        if (!address || !address.trim()) {
+            return res.status(400).json({
+                success: false,
+                message: "Địa chỉ không được để trống"
+            });
+        }
+
+        const user = await userModel.findOne({ _id: userId } as any);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "Không tìm thấy người dùng"
+            });
+        }
+
+        // Initialize addresses array if it doesn't exist
+        if (!user.addresses) {
+            user.addresses = [];
+        }
+
+        // Check if address already exists
+        const addressExists = user.addresses.some((addr: any) => addr.address === address.trim());
+        if (addressExists) {
+            return res.status(400).json({
+                success: false,
+                message: "Địa chỉ này đã tồn tại"
+            });
+        }
+
+        // If this is the first address, set it as default
+        const isDefault = user.addresses.length === 0;
+
+        // If setting as default, unset other defaults
+        if (isDefault) {
+            user.addresses.forEach((addr: any) => {
+                addr.isDefault = false;
+            });
+        }
+
+        // Add new address
+        user.addresses.push({
+            address: address.trim(),
+            isDefault: isDefault
+        });
+
+        await user.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Thêm địa chỉ thành công",
+            data: {
+                address: user.addresses[user.addresses.length - 1]
+            }
+        });
+
+    } catch (error) {
+        console.error("Add address error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Lỗi server, vui lòng thử lại sau"
+        });
+    }
+}
+
+// Update address
+const updateAddress = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const userId = (req as any).userId;
+        const { addressId } = req.params;
+        const { address } = req.body;
+
+        if (!address || !address.trim()) {
+            return res.status(400).json({
+                success: false,
+                message: "Địa chỉ không được để trống"
+            });
+        }
+
+        const user = await userModel.findOne({ _id: userId } as any);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "Không tìm thấy người dùng"
+            });
+        }
+
+        if (!user.addresses) {
+            return res.status(404).json({
+                success: false,
+                message: "Không tìm thấy địa chỉ"
+            });
+        }
+
+        const addressIndex = user.addresses.findIndex((addr: any) => addr._id?.toString() === addressId);
+        if (addressIndex === -1) {
+            return res.status(404).json({
+                success: false,
+                message: "Không tìm thấy địa chỉ"
+            });
+        }
+
+        // Check if address already exists (excluding current address)
+        const addressExists = user.addresses.some((addr: any, index: number) =>
+            index !== addressIndex && addr.address === address.trim()
+        );
+        if (addressExists) {
+            return res.status(400).json({
+                success: false,
+                message: "Địa chỉ này đã tồn tại"
+            });
+        }
+
+        // Update address
+        user.addresses[addressIndex].address = address.trim();
+        await user.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Cập nhật địa chỉ thành công",
+            data: {
+                address: user.addresses[addressIndex]
+            }
+        });
+
+    } catch (error) {
+        console.error("Update address error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Lỗi server, vui lòng thử lại sau"
+        });
+    }
+}
+
+// Delete address
+const deleteAddress = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const userId = (req as any).userId;
+        const { addressId } = req.params;
+
+        const user = await userModel.findOne({ _id: userId } as any);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "Không tìm thấy người dùng"
+            });
+        }
+
+        if (!user.addresses) {
+            return res.status(404).json({
+                success: false,
+                message: "Không tìm thấy địa chỉ"
+            });
+        }
+
+        const addressIndex = user.addresses.findIndex((addr: any) => addr._id?.toString() === addressId);
+        if (addressIndex === -1) {
+            return res.status(404).json({
+                success: false,
+                message: "Không tìm thấy địa chỉ"
+            });
+        }
+
+        // Prevent deletion of default address
+        if (user.addresses[addressIndex].isDefault) {
+            return res.status(400).json({
+                success: false,
+                message: "Không thể xóa địa chỉ mặc định"
+            });
+        }
+
+        // Delete address
+        user.addresses.splice(addressIndex, 1);
+        await user.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Xóa địa chỉ thành công"
+        });
+
+    } catch (error) {
+        console.error("Delete address error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Lỗi server, vui lòng thử lại sau"
+        });
+    }
+}
+
+// Set default address
+const setDefaultAddress = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const userId = (req as any).userId;
+        const { addressId } = req.params;
+
+        const user = await userModel.findOne({ _id: userId } as any);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "Không tìm thấy người dùng"
+            });
+        }
+
+        if (!user.addresses) {
+            return res.status(404).json({
+                success: false,
+                message: "Không tìm thấy địa chỉ"
+            });
+        }
+
+        const addressIndex = user.addresses.findIndex((addr: any) => addr._id?.toString() === addressId);
+        if (addressIndex === -1) {
+            return res.status(404).json({
+                success: false,
+                message: "Không tìm thấy địa chỉ"
+            });
+        }
+
+        // Unset all other defaults
+        user.addresses.forEach((addr: any) => {
+            addr.isDefault = false;
+        });
+
+        // Set new default
+        user.addresses[addressIndex].isDefault = true;
+        await user.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Đặt địa chỉ mặc định thành công",
+            data: {
+                address: user.addresses[addressIndex]
+            }
+        });
+
+    } catch (error) {
+        console.error("Set default address error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Lỗi server, vui lòng thử lại sau"
+        });
+    }
+}
+
+// Get all users (admin only)
+const getAllUsers = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const userId = (req as any).userId;
+        const { page = 1, limit = 10, search, role } = req.query;
+
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized"
+            });
+        }
+
+        // Check if user is admin
+        const user = await userModel.findById(userId);
+        if (!user || user.role !== 'admin') {
+            return res.status(403).json({
+                success: false,
+                message: "Access denied. Admin only."
+            });
+        }
+
+        const pageNum = parseInt(page as string);
+        const limitNum = parseInt(limit as string);
+        const skip = (pageNum - 1) * limitNum;
+
+        // Build query
+        const query: any = {};
+        
+        // Filter by role
+        if (role && ['user', 'admin'].includes(role as string)) {
+            query.role = role;
+        } else {
+            // Default to 'user' if not specified
+            query.role = 'user';
+        }
+        
+        // Search by email, firstName, lastName
+        if (search) {
+            query.$or = [
+                { email: { $regex: search as string, $options: 'i' } },
+                { firstName: { $regex: search as string, $options: 'i' } },
+                { lastName: { $regex: search as string, $options: 'i' } }
+            ];
+        }
+
+        // Get users with pagination
+        const users = await userModel
+            .find(query)
+            .select('-password -refreshToken -otp -resetOTP')
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limitNum);
+
+        const total = await userModel.countDocuments(query);
+        const totalPages = Math.ceil(total / limitNum);
+
+        return res.status(200).json({
+            success: true,
+            data: {
+                users: users,
+                pagination: {
+                    currentPage: pageNum,
+                    itemsPerPage: limitNum,
+                    totalItems: total,
+                    totalPages: totalPages,
+                    hasNextPage: pageNum < totalPages,
+                    hasPrevPage: pageNum > 1
+                }
+            }
+        });
+
+    } catch (error: any) {
+        console.error("Error getting all users:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error",
+            error: error.message
+        });
+    }
+};
+
 export {
     loginUser,
     logoutUser,
@@ -1027,5 +1359,10 @@ export {
     updateUserProfile,
     changePassword,
     uploadAvatar,
-    deleteAvatar
+    deleteAvatar,
+    addAddress,
+    updateAddress,
+    deleteAddress,
+    setDefaultAddress,
+    getAllUsers
 };

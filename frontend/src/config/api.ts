@@ -24,6 +24,12 @@ export const API_ENDPOINTS = {
   UPLOAD_AVATAR: '/user/avatar',
   DELETE_AVATAR: '/user/avatar',
 
+  // Addresses
+  ADD_ADDRESS: '/user/addresses',
+  UPDATE_ADDRESS: (addressId: string) => `/user/addresses/${addressId}`,
+  DELETE_ADDRESS: (addressId: string) => `/user/addresses/${addressId}`,
+  SET_DEFAULT_ADDRESS: (addressId: string) => `/user/addresses/${addressId}/default`,
+
   // Products
   PRODUCTS: '/products',
   PRODUCT_BY_ID: (id: string) => `/products/${id}`, // Can use ID or slug
@@ -43,5 +49,12 @@ export const API_ENDPOINTS = {
   // Promo Code
   PROMO_CODE_VALIDATE: '/promo-code/validate',
   PROMO_CODE_APPLY: '/promo-code/apply',
+
+  // Orders
+  CREATE_ORDER: '/orders',
+  ORDERS: '/orders',
+  ORDER_BY_ID: (orderId: string) => `/orders/${orderId}`,
+  UPDATE_ORDER_STATUS: (orderId: string) => `/orders/${orderId}/status`,
+  CANCEL_ORDER: (orderId: string) => `/orders/${orderId}/cancel`,
 } as const;
 

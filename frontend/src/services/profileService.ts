@@ -17,6 +17,12 @@ export interface ChangePasswordRequest {
   confirmPassword: string;
 }
 
+export interface UserAddress {
+  _id: string;
+  address: string;
+  isDefault: boolean;
+}
+
 export interface ProfileResponse {
   success: boolean;
   message: string;
@@ -28,7 +34,8 @@ export interface ProfileResponse {
       email: string;
       gender?: 'male' | 'female' | 'other';
       phone?: string;
-      address?: string;
+      address?: string; // Keep for backward compatibility
+      addresses?: UserAddress[]; // New: array of addresses
       role: string;
       avatar?: string;
     };
@@ -70,6 +77,30 @@ export const profileService = {
   // Delete avatar
   deleteAvatar: async () => {
     const response = await api.delete(API_ENDPOINTS.DELETE_AVATAR);
+    return response.data;
+  },
+
+  // Add address
+  addAddress: async (address: string) => {
+    const response = await api.post(API_ENDPOINTS.ADD_ADDRESS, { address });
+    return response.data;
+  },
+
+  // Update address
+  updateAddress: async (addressId: string, address: string) => {
+    const response = await api.put(API_ENDPOINTS.UPDATE_ADDRESS(addressId), { address });
+    return response.data;
+  },
+
+  // Delete address
+  deleteAddress: async (addressId: string) => {
+    const response = await api.delete(API_ENDPOINTS.DELETE_ADDRESS(addressId));
+    return response.data;
+  },
+
+  // Set default address
+  setDefaultAddress: async (addressId: string) => {
+    const response = await api.put(API_ENDPOINTS.SET_DEFAULT_ADDRESS(addressId));
     return response.data;
   },
 };

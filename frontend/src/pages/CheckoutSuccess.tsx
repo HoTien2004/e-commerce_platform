@@ -5,7 +5,7 @@ import { FiCheckCircle, FiHome, FiPackage } from 'react-icons/fi';
 const CheckoutSuccess = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const orderId = (location.state as any)?.orderId || 'TS-XXXXXX';
+  const orderNumber = (location.state as any)?.orderNumber || 'TS-XXXXXX';
   const total = (location.state as any)?.total || 0;
 
   useEffect(() => {
@@ -38,7 +38,7 @@ const CheckoutSuccess = () => {
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-gray-600">Mã đơn hàng:</span>
-                <span className="font-semibold text-gray-900">{orderId}</span>
+                <span className="font-semibold text-gray-900">{orderNumber}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Tổng tiền:</span>
@@ -61,13 +61,23 @@ const CheckoutSuccess = () => {
 
           {/* Actions */}
           <div className="flex flex-col sm:flex-row gap-4">
-            <Link
-              to="/orders"
-              className="flex-1 flex items-center justify-center gap-2 bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors font-semibold"
-            >
-              <FiPackage className="w-5 h-5" />
-              <span>Xem đơn hàng</span>
-            </Link>
+            {orderNumber ? (
+              <Link
+                to={`/orders/${orderNumber}`}
+                className="flex-1 flex items-center justify-center gap-2 bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors font-semibold"
+              >
+                <FiPackage className="w-5 h-5" />
+                <span>Xem chi tiết đơn hàng</span>
+              </Link>
+            ) : (
+              <Link
+                to="/orders"
+                className="flex-1 flex items-center justify-center gap-2 bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors font-semibold"
+              >
+                <FiPackage className="w-5 h-5" />
+                <span>Xem đơn hàng</span>
+              </Link>
+            )}
             <Link
               to="/"
               className="flex-1 flex items-center justify-center gap-2 bg-white text-gray-700 px-6 py-3 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors font-semibold"

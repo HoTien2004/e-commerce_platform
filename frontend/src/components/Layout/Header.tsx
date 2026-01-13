@@ -11,7 +11,7 @@ import toast from 'react-hot-toast';
 
 const Header = () => {
   const { user, isAuthenticated, logout } = useAuthStore();
-  const { itemCount } = useCartStore();
+  const { items } = useCartStore();
   const { openAuthModal } = useModalStore();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState<boolean>(false);
   const [isUserMenuClosing, setIsUserMenuClosing] = useState<boolean>(false);
@@ -318,9 +318,9 @@ const Header = () => {
                 className="relative p-2.5 text-gray-700 hover:text-primary-600 transition"
               >
                 <FiShoppingCart className="w-6 h-6" />
-                {itemCount > 0 && (
+                {items.length > 0 && (
                   <span className="absolute -top-1 -right-1 bg-primary-600 text-white text-[10px] rounded-full min-w-[20px] h-5 flex items-center justify-center font-semibold px-1">
-                    {itemCount > 99 ? '99+' : itemCount}
+                    {items.length > 99 ? '99+' : items.length}
                   </span>
                 )}
               </Link>

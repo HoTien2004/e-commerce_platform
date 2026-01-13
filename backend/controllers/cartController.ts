@@ -86,7 +86,7 @@ export const addToCart = async (req: Request, res: Response): Promise<Response> 
         if (product.stock < quantity) {
             return res.status(400).json({
                 success: false,
-                message: `Insufficient stock. Available: ${product.stock}`
+                message: 'Xin lỗi, đã hết hàng'
             });
         }
 
@@ -127,11 +127,12 @@ export const addToCart = async (req: Request, res: Response): Promise<Response> 
 
         if (existingItemIndex !== -1) {
             // Update quantity
-            const newQuantity = cart.items[existingItemIndex].quantity + quantity;
+            const currentQuantity = cart.items[existingItemIndex].quantity;
+            const newQuantity = currentQuantity + quantity;
             if (newQuantity > product.stock) {
                 return res.status(400).json({
                     success: false,
-                    message: `Insufficient stock. Available: ${product.stock}, Requested: ${newQuantity}`
+                    message: 'Xin lỗi, đã hết hàng'
                 });
             }
             cart.items[existingItemIndex].quantity = newQuantity;

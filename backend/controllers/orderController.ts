@@ -9,7 +9,7 @@ import promoCodeModel from "../models/promoCodeModel";
 const createOrder = async (req: Request, res: Response): Promise<Response> => {
     try {
         const userId = (req as any).userId;
-        const { shippingAddress, paymentMethod = 'cod', promoCode, notes, selectedProductIds } = req.body;
+        const { shippingAddress, paymentMethod = 'cod', promoCode, notes, selectedProductIds, customerInfo } = req.body;
 
         if (!userId) {
             return res.status(401).json({
@@ -18,7 +18,6 @@ const createOrder = async (req: Request, res: Response): Promise<Response> => {
             });
         }
 
-        // Validate required fields
         if (!shippingAddress || !shippingAddress.trim()) {
             return res.status(400).json({
                 success: false,
@@ -26,7 +25,6 @@ const createOrder = async (req: Request, res: Response): Promise<Response> => {
             });
         }
 
-        // Get user and cart
         const user = await userModel.findById(userId);
         if (!user) {
             return res.status(404).json({
@@ -50,7 +48,6 @@ const createOrder = async (req: Request, res: Response): Promise<Response> => {
             });
         }
 
-        // Filter cart items to only selected ones if selectedProductIds is provided
         let cartItemsToProcess = cart.items;
         if (selectedProductIds && Array.isArray(selectedProductIds) && selectedProductIds.length > 0) {
             cartItemsToProcess = cart.items.filter((item: any) => {
@@ -66,7 +63,6 @@ const createOrder = async (req: Request, res: Response): Promise<Response> => {
             }
         }
 
-        // Validate products and stock
         const orderItems: any[] = [];
         let subtotal = 0;
 
@@ -138,13 +134,30 @@ const createOrder = async (req: Request, res: Response): Promise<Response> => {
             appliedPromoCode = promo.code;
         }
 
-        // Calculate final shipping fee (free if promo code provides free shipping or order > 1M)
         const finalShippingFee = (isFreeShip || subtotal > 1000000) ? 0 : shippingFee;
         
-        // Calculate final total
         const total = Math.max(0, subtotal - discount + finalShippingFee);
 
-        // Create order
+        const bodyFullName = (customerInfo?.fullName || '').trim();
+        const bodyPhone = (customerInfo?.phone || '').trim();
+        const bodyEmail = (customerInfo?.email || '').trim();
+
+        const finalPhone = bodyPhone || (user.phone || '').trim();
+        if (!finalPhone) {
+            return res.status(400).json({
+                success: false,
+                message: "Phone number is required"
+            });
+        }
+
+        if (!user.phone || user.phone.trim() === '') {
+            user.phone = finalPhone;
+            await user.save();
+        }
+
+        const finalFullName = bodyFullName || `${user.firstName} ${user.lastName}`;
+        const finalEmail = bodyEmail || user.email;
+
         const order = await orderModel.create({
             userId: user._id,
             items: orderItems,
@@ -158,9 +171,9 @@ const createOrder = async (req: Request, res: Response): Promise<Response> => {
             promoCode: appliedPromoCode,
             notes: notes || null,
             customerInfo: {
-                fullName: `${user.firstName} ${user.lastName}`,
-                phone: user.phone || '',
-                email: user.email
+                fullName: finalFullName,
+                phone: finalPhone,
+                email: finalEmail
             }
         });
 
@@ -432,7 +445,16 @@ const updateOrderStatus = async (req: Request, res: Response): Promise<Response>
             });
         }
 
-        const order = await orderModel.findById(orderId);
+        // Try to find order by ID (ObjectId) or orderNumber (string)
+        let order;
+        // Check if orderId is a valid ObjectId format
+        if (orderId.match(/^[0-9a-fA-F]{24}$/)) {
+            order = await orderModel.findById(orderId);
+        } else {
+            // If not ObjectId, treat as orderNumber
+            order = await orderModel.findOne({ orderNumber: orderId });
+        }
+
         if (!order) {
             return res.status(404).json({
                 success: false,
@@ -440,8 +462,9 @@ const updateOrderStatus = async (req: Request, res: Response): Promise<Response>
             });
         }
 
-        // Prevent status changes for cancelled or returned orders
-        if (order.orderStatus === 'cancelled' || order.orderStatus === 'returned') {
+        // Prevent changing status FROM cancelled or returned (but allow changing TO these statuses)
+        if ((order.orderStatus === 'cancelled' || order.orderStatus === 'returned') && 
+            orderStatus !== order.orderStatus) {
             return res.status(400).json({
                 success: false,
                 message: `Cannot change status of ${order.orderStatus} order`

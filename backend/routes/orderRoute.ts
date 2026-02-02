@@ -85,6 +85,16 @@ const orderRouter = express.Router();
  *         notes:
  *           type: string
  *           description: "Optional order notes"
+ *         customerInfo:
+ *           type: object
+ *           description: "Optional customer info override at checkout"
+ *           properties:
+ *             fullName:
+ *               type: string
+ *             phone:
+ *               type: string
+ *             email:
+ *               type: string
  *     UpdateOrderStatusRequest:
  *       type: object
  *       required:

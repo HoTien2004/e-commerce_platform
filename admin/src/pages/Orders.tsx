@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { orderService, type Order } from '../services/orderService';
 import { FiEye, FiEdit, FiSearch } from 'react-icons/fi';
 
 const Orders = () => {
+  const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -126,14 +128,23 @@ const Orders = () => {
                 setSelectedStatus(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all cursor-pointer shadow-sm hover:shadow-md bg-white text-gray-900 font-medium"
+              style={{
+                appearance: 'none',
+                WebkitAppearance: 'none',
+                MozAppearance: 'none',
+                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23374151' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'right 0.75rem center',
+                paddingRight: '2.5rem'
+              }}
             >
-              <option value="all">Tất cả</option>
-              <option value="pending">Chờ xử lý</option>
-              <option value="shipped">Đang giao</option>
-              <option value="delivered">Đã giao</option>
-              <option value="cancelled">Đã hủy</option>
-              <option value="returned">Đã trả hàng</option>
+              <option value="all" className="py-2 px-3 rounded-md">Tất cả</option>
+              <option value="pending" className="py-2 px-3 rounded-md">Chờ xử lý</option>
+              <option value="shipped" className="py-2 px-3 rounded-md">Đang giao</option>
+              <option value="delivered" className="py-2 px-3 rounded-md">Đã giao</option>
+              <option value="cancelled" className="py-2 px-3 rounded-md">Đã hủy</option>
+              <option value="returned" className="py-2 px-3 rounded-md">Đã trả hàng</option>
             </select>
           </div>
           <div>
@@ -227,13 +238,23 @@ const Orders = () => {
                         <select
                           value={order.orderStatus}
                           onChange={(e) => handleStatusChange(order._id, e.target.value)}
-                          className={`px-2 py-1 text-xs font-semibold rounded-full border-0 ${getStatusColor(order.orderStatus)}`}
+                          className={`px-3 py-1.5 text-xs font-semibold rounded-lg border-2 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all cursor-pointer shadow-sm hover:shadow-md ${getStatusColor(order.orderStatus)}`}
+                          style={{ 
+                            appearance: 'none',
+                            WebkitAppearance: 'none',
+                            MozAppearance: 'none',
+                            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23374151' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+                            backgroundRepeat: 'no-repeat',
+                            backgroundPosition: 'right 0.75rem center',
+                            paddingRight: '2.5rem',
+                            minWidth: '140px'
+                          }}
                         >
-                          <option value="pending">Chờ xử lý</option>
-                          <option value="shipped">Đang giao</option>
-                          <option value="delivered">Đã giao</option>
-                          <option value="cancelled">Đã hủy</option>
-                          <option value="returned">Đã trả hàng</option>
+                          <option value="pending" className="py-1.5 px-3 rounded-md font-medium">Chờ xử lý</option>
+                          <option value="shipped" className="py-1.5 px-3 rounded-md font-medium">Đang giao</option>
+                          <option value="delivered" className="py-1.5 px-3 rounded-md font-medium">Đã giao</option>
+                          <option value="cancelled" className="py-1.5 px-3 rounded-md font-medium">Đã hủy</option>
+                          <option value="returned" className="py-1.5 px-3 rounded-md font-medium">Đã trả hàng</option>
                         </select>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -241,7 +262,7 @@ const Orders = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <button
-                          onClick={() => window.open(`/orders/${order.orderNumber}`, '_blank')}
+                          onClick={() => navigate(`/orders/${order.orderNumber}`)}
                           className="text-primary-600 hover:text-primary-900 flex items-center gap-1"
                         >
                           <FiEye className="w-4 h-4" />

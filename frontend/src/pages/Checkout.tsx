@@ -201,13 +201,17 @@ const Checkout = () => {
     try {
       setIsSubmitting(true);
 
-      // Create order via API
       const response = await orderService.createOrder({
         shippingAddress: data.address,
         paymentMethod: data.paymentMethod,
         promoCode: appliedPromoCode?.code || undefined,
         notes: data.notes || undefined,
         selectedProductIds: selectedProductIds,
+        customerInfo: {
+          fullName: data.fullName,
+          phone: data.phone,
+          email: data.email,
+        },
       });
 
       if (response.success && response.data.order) {

@@ -67,8 +67,19 @@ export const useAuthStore = create<AuthState>()(
       },
 
       initialize: () => {
+        // This function is called on app start
+        // It sets temporary auth state from persisted data, actual verification happens in ProtectedRoute
         const token = localStorage.getItem('accessToken');
         const storedUser = get().user;
+        const storedAccessToken = get().accessToken;
+        
+        // Sync tokens from localStorage if they exist
+        if (token && !storedAccessToken) {
+          set({
+            accessToken: token,
+            refreshToken: localStorage.getItem('refreshToken'),
+          });
+        }
         
         // If no token, clear everything
         if (!token) {
@@ -83,27 +94,18 @@ export const useAuthStore = create<AuthState>()(
           return;
         }
 
-        // If token exists but no user in store, verify token
-        if (token && !storedUser) {
-          // Token exists but user info is missing - need to verify
-          set({
-            isAuthenticated: false,
-            isAdmin: false,
-            isInitialized: true,
-          });
-          return;
-        }
-
-        // If both token and user exist, set authenticated state
-        if (token && storedUser) {
+        // If token and user exist in persisted state, set temporary auth state
+        // This prevents logout during reload while verification is happening
+        if (token && storedUser && storedUser.role === 'admin') {
           set({
             accessToken: token,
             refreshToken: localStorage.getItem('refreshToken'),
             isAuthenticated: true,
-            isAdmin: storedUser.role === 'admin',
+            isAdmin: true,
             isInitialized: true,
           });
         } else {
+          // Mark as initialized but not authenticated - will verify in ProtectedRoute
           set({ isInitialized: true });
         }
       },
@@ -113,6 +115,7 @@ export const useAuthStore = create<AuthState>()(
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         user: state.user,
+        accessToken: state.accessToken,
         refreshToken: state.refreshToken,
         // Don't persist isAuthenticated and isAdmin - verify on init
       }),

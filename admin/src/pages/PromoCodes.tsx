@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { promoCodeService, type PromoCode } from '../services/promoCodeService';
 import { FiPlus, FiEdit, FiTrash2 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
+import PromoCodeModal from '../components/PromoCodeModal';
 
 const PromoCodes = () => {
   const [promoCodes, setPromoCodes] = useState<PromoCode[]>([]);
@@ -116,7 +117,7 @@ const PromoCodes = () => {
                 {promoCodes.map((promoCode) => {
                   const isExpired = new Date(promoCode.validTo) < new Date();
                   const isActive = promoCode.isActive && !isExpired;
-                  
+
                   return (
                     <tr key={promoCode._id}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
@@ -126,17 +127,17 @@ const PromoCodes = () => {
                         {getTypeLabel(promoCode.type)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {promoCode.type === 'percentage' 
+                        {promoCode.type === 'percentage'
                           ? `${promoCode.value}%`
                           : promoCode.type === 'fixed'
-                          ? `${promoCode.value.toLocaleString('vi-VN')}₫`
-                          : 'Miễn phí ship'}
+                            ? `${promoCode.value.toLocaleString('vi-VN')}₫`
+                            : 'Miễn phí ship'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {promoCode.minOrder.toLocaleString('vi-VN')}₫
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {promoCode.usageLimit 
+                        {promoCode.usageLimit
                           ? `${promoCode.usedCount} / ${promoCode.usageLimit}`
                           : promoCode.usedCount}
                       </td>
@@ -147,11 +148,10 @@ const PromoCodes = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          isActive 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-gray-100 text-gray-800'
-                        }`}>
+                        <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${isActive
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-gray-100 text-gray-800'
+                          }`}>
                           {isActive ? 'Hoạt động' : 'Không hoạt động'}
                         </span>
                       </td>
@@ -183,24 +183,16 @@ const PromoCodes = () => {
         </div>
       )}
 
-      {/* TODO: Add PromoCodeModal component for create/edit */}
+      {/* PromoCode Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <h2 className="text-xl font-bold mb-4">
-              {editingPromoCode ? 'Sửa mã khuyến mãi' : 'Thêm mã khuyến mãi'}
-            </h2>
-            <p className="text-gray-500 mb-4">
-              Tính năng này sẽ được triển khai trong modal riêng. Hiện tại bạn có thể quản lý qua Swagger API.
-            </p>
-            <button
-              onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
-            >
-              Đóng
-            </button>
-          </div>
-        </div>
+        <PromoCodeModal
+          promoCode={editingPromoCode}
+          onClose={() => {
+            setIsModalOpen(false);
+            setEditingPromoCode(null);
+          }}
+          onSuccess={loadPromoCodes}
+        />
       )}
     </div>
   );

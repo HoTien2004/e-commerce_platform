@@ -1,23 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import {
-  FiArrowRight,
-  FiStar,
-  FiTrendingUp,
-  FiZap,
-  FiCpu,
-  FiMonitor,
-  FiHardDrive,
-  FiMousePointer,
-  FiTag,
-  FiBookOpen,
-  FiMessageSquare,
-  FiDollarSign,
-  FiUsers,
-  FiRefreshCw,
-  FiCreditCard,
-  FiShield,
-} from 'react-icons/fi';
+import { FiTrendingUp, FiZap, FiCpu, FiMonitor, FiHardDrive, FiMousePointer, FiTag, FiBookOpen, FiMessageSquare, FiDollarSign, FiUsers, FiRefreshCw, FiCreditCard, FiShield } from 'react-icons/fi';
 import ProductCard from '../components/ProductCard';
 import { productService } from '../services/productService';
 import { cartService } from '../services/cartService';
@@ -26,70 +9,39 @@ import { useCartModalStore } from '../store/cartModalStore';
 import type { Product } from '../types/product';
 import toast from 'react-hot-toast';
 
-const heroSlides = [
-  {
-    id: 1,
-    title: 'Laptop gaming hiệu năng cao',
-    subtitle: 'FPS mượt, tản nhiệt tốt, giá cực tốt cho game thủ.',
-    cta: 'Xem laptop gaming',
-    to: '/products?category=Laptop',
-    badge: 'Gaming Sale',
-  },
-  {
-    id: 2,
-    title: 'PC đồ họa & làm việc',
-    subtitle: 'Render nhanh, đa nhiệm mượt, phù hợp designer & editor.',
-    cta: 'Xem PC cấu hình cao',
-    to: '/products?category=PC',
-    badge: 'Workstation',
-  },
-  {
-    id: 3,
-    title: 'Phụ kiện công nghệ chính hãng',
-    subtitle: 'Chuột, bàn phím, tai nghe, màn hình... đồng bộ hệ sinh thái.',
-    cta: 'Xem phụ kiện',
-    to: '/products?category=Phụ kiện',
-    badge: 'Accessory Week',
-  },
-];
-
-
 const Home = () => {
   const { setCart, setLoading: setCartLoading } = useCartStore();
   const { addModal } = useCartModalStore();
-  const [currentSlide, setCurrentSlide] = useState(0);
   const [promotions, setPromotions] = useState<Product[]>([]);
   const [bestSellers, setBestSellers] = useState<Product[]>([]);
   const [accessories, setAccessories] = useState<Product[]>([]);
   const [components, setComponents] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
-    }, 6000);
-    return () => clearInterval(timer);
-  }, []);
+  const [currentSlide, setCurrentSlide] = useState(0);
 
   useEffect(() => {
     fetchProducts();
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % 3);
+    }, 6000);
+    return () => clearInterval(timer);
   }, []);
 
   const fetchProducts = async () => {
     try {
       setLoading(true);
 
-      // Fetch all products for promotions (filter by discount > 0)
       const allProductsRes = await productService.getProducts({ limit: 50, status: 'active' });
       const allProducts = allProductsRes?.data?.products || [];
       const promotionProducts = allProducts
         .filter((p: Product) => p.discount > 0)
         .slice(0, 10);
 
-      // Fetch best sellers (10 products)
       const bestSellersRes = await productService.getBestSellers(10);
 
-      // Fetch accessories: Chuột, Loa máy tính, Màn hình, Tai nghe, Bàn phím, Pad chuột
       const accessoryCategories = ['Chuột', 'Loa máy tính', 'Màn hình', 'Tai nghe', 'Bàn phím', 'Pad chuột'];
       const accessoryPromises = accessoryCategories.map(cat =>
         productService.getProducts({ category: cat, limit: 3, status: 'active' })
@@ -99,7 +51,6 @@ const Home = () => {
         .flatMap(res => res?.data?.products || [])
         .slice(0, 10);
 
-      // Fetch components: Linh kiện máy tính
       const componentsRes = await productService.getProducts({
         category: 'Linh kiện máy tính',
         limit: 10,
@@ -112,7 +63,6 @@ const Home = () => {
       setComponents(componentsRes?.data?.products || []);
     } catch (error) {
       console.error('Error fetching products:', error);
-      // Set empty arrays on error to prevent undefined map errors
       setPromotions([]);
       setBestSellers([]);
       setAccessories([]);
@@ -130,10 +80,7 @@ const Home = () => {
         quantity: 1,
       });
 
-      // Update cart store with the complete cart from backend
       setCart(response.data);
-
-      // Show modal using store
       addModal(product, 1);
     } catch (error: any) {
       toast.error(error.response?.data?.message || error.message || 'Lỗi khi thêm vào giỏ hàng');
@@ -142,26 +89,20 @@ const Home = () => {
     }
   };
 
-  const activeSlide = heroSlides[currentSlide];
-
   return (
     <div className="bg-gray-50">
       <div className="max-w-[1200px] mx-auto px-0 py-6 lg:py-8">
-        {/* Top section: Categories, Hero slider, and Image cards */}
+        {/* Top section: categories sidebar, hero slider, right banners */}
         <div className="mb-6">
-          {/* Top row: Categories, Slider, Right cards */}
           <div className="flex gap-4 lg:gap-6 mb-4">
-            {/* Left sidebar categories */}
+            {/* Categories sidebar */}
             <aside className="hidden lg:block w-52 xl:w-60">
-              {/* Fixed height container - A4 landscape height */}
               <div className="h-[450px] rounded-xl bg-white border border-gray-200 shadow-sm overflow-hidden">
                 <div className="h-full overflow-y-auto no-scrollbar">
                   <div className="space-y-4 p-3">
-                    {/* Title */}
                     <div className="px-4 pb-0">
                       <h2 className="text-xl font-bold text-gray-900">Danh mục</h2>
                     </div>
-                    {/* Group 1: sản phẩm */}
                     <div className="rounded-xl bg-white mt-2">
                       <nav className="px-3 py-0 space-y-1 text-[15px]">
                         <Link
@@ -272,12 +213,9 @@ const Home = () => {
                       </nav>
                     </div>
 
-                    {/* Divider */}
                     <div className="flex justify-center my-0.5">
                       <div className="w-5/6 border-t-2 border-gray-300"></div>
                     </div>
-
-                    {/* Group 2: nội dung / tin tức */}
                     <div className="rounded-xl bg-white">
                       <nav className="px-3 py-0 space-y-1 text-[15px]">
                         <Link
@@ -322,35 +260,29 @@ const Home = () => {
               </div>
             </aside>
 
-            {/* Hero slider - A4 landscape height */}
-            <section className="flex-1 bg-gradient-to-r from-primary-600 to-primary-800 text-white rounded-3xl overflow-hidden shadow-md h-[450px]">
-              <div className="h-full px-4 md:px-8 py-6 md:py-8 flex flex-col md:flex-row md:items-center gap-6">
-                <div className="flex-1 space-y-3 md:space-y-4">
-                  <span className="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-xs md:text-sm font-medium">
-                    <FiStar className="mr-1.5 h-4 w-4 text-amber-300" />
-                    {activeSlide.badge}
-                  </span>
-                  <h1 className="text-xl md:text-3xl lg:text-4xl font-extrabold leading-tight">
-                    {activeSlide.title}
-                  </h1>
-                  <p className="text-sm md:text-base text-primary-50 max-w-xl">
-                    {activeSlide.subtitle}
-                  </p>
-                  <Link
-                    to={activeSlide.to}
-                    className="inline-flex items-center space-x-2 bg-white text-primary-700 px-4 md:px-5 py-2 md:py-2.5 rounded-full text-sm font-semibold hover:bg-gray-100 transition shadow-sm"
-                  >
-                    <span>{activeSlide.cta}</span>
-                    <FiArrowRight className="w-4 h-4" />
-                  </Link>
-                  <div className="flex items-center gap-2 pt-1">
-                    {heroSlides.map((slide, index) => (
+            {/* Hero slider */}
+            <section className="flex-1 rounded-3xl overflow-hidden shadow-md h-[450px]">
+              <div className="relative h-full w-full">
+                <img
+                  src={
+                    currentSlide === 0
+                      ? 'https://res.cloudinary.com/dxf5tsrif/image/upload/v1770024187/snapedit_1770024152700_asaojk.jpg'
+                      : currentSlide === 1
+                        ? 'https://res.cloudinary.com/dxf5tsrif/image/upload/v1770024547/snapedit_1770024534453_tarmab.jpg'
+                        : 'https://res.cloudinary.com/dxf5tsrif/image/upload/v1770024548/snapedit_1770024520650_zciqxo.jpg'
+                  }
+                  alt=""
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 flex items-end justify-center pb-4">
+                  <div className="flex items-center gap-2 bg-black/40 rounded-full px-3 py-1">
+                    {[0, 1, 2].map((index) => (
                       <button
-                        key={slide.id}
+                        key={index}
                         type="button"
                         onClick={() => setCurrentSlide(index)}
-                        className={`h-2 rounded-full transition-all ${index === currentSlide ? 'w-6 bg-white' : 'w-2 bg-white/50'}`}
-                        aria-label={`Chuyển tới slide ${index + 1}`}
+                        className={`h-2 rounded-full transition-all ${index === currentSlide ? 'w-6 bg-white' : 'w-2 bg-white/60'}`}
+                        aria-label={`Go to slide ${index + 1}`}
                       />
                     ))}
                   </div>
@@ -358,77 +290,91 @@ const Home = () => {
               </div>
             </section>
 
-            {/* Right side: 3 vertical image cards */}
+            {/* Right vertical banners */}
             <div className="hidden lg:flex flex-col gap-3 w-64 h-[450px]">
               <Link
-                to="/products?category=Laptop"
-                className="h-[calc(33.333%-0.5rem)] rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white p-4 shadow-md hover:shadow-lg transition-shadow flex flex-col justify-between"
+                to="/products?category=Laptop gaming"
+                className="relative h-[calc(33.333%-0.5rem)] rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow"
               >
-                <div>
-                  <h3 className="text-base font-bold mb-1">Laptop mới</h3>
-                  <p className="text-xs text-blue-100">Giảm đến 30%</p>
-                </div>
-                <div className="mt-2 text-xs text-blue-200">Xem ngay →</div>
+                <img
+                  src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1770021053/macbook-giao-xa-2026_aej6mb.webp"
+                  alt="Laptop"
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
               </Link>
+
               <Link
                 to="/products?category=PC Gaming"
-                className="h-[calc(33.333%-0.5rem)] rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 text-white p-4 shadow-md hover:shadow-lg transition-shadow flex flex-col justify-between"
+                className="relative h-[calc(33.333%-0.5rem)] rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow"
               >
-                <div>
-                  <h3 className="text-base font-bold mb-1">PC Gaming</h3>
-                  <p className="text-xs text-purple-100">Cấu hình cao</p>
-                </div>
-                <div className="mt-2 text-xs text-purple-200">Xem ngay →</div>
+                <img
+                  src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1769505949/ttgshop-banner-under-slider-top-27122025-3_nkswqk.png"
+                  alt="PC"
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
               </Link>
+
               <Link
-                to="/products?category=Phụ kiện"
-                className="h-[calc(33.333%-0.5rem)] rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white p-4 shadow-md hover:shadow-lg transition-shadow flex flex-col justify-between"
+                to="/products?category="
+                className="relative h-[calc(33.333%-0.5rem)] rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow"
               >
-                <div>
-                  <h3 className="text-base font-bold mb-1">Phụ kiện</h3>
-                  <p className="text-xs text-emerald-100">Đa dạng mẫu mã</p>
-                </div>
-                <div className="mt-2 text-xs text-emerald-200">Xem ngay →</div>
+                <img
+                  src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1770021339/ttgshop-banner-under-slider-top-27122025-2_nx7tlu.png"
+                  alt="Bàn phím"
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
               </Link>
             </div>
           </div>
 
-          {/* Bottom row: 4 horizontal image cards */}
+          {/* Bottom horizontal banners */}
           <div className="hidden lg:grid grid-cols-4 gap-3">
             <Link
-              to="/products?search=ram"
-              className="h-[139px] rounded-xl bg-gradient-to-br from-orange-400 to-orange-500 text-white p-4 shadow-md hover:shadow-lg transition-shadow flex flex-col justify-between"
+              to=""
+              className="relative h-[139px] rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow group"
             >
-              <h3 className="text-sm font-bold mb-1">RAM DDR5</h3>
-              <p className="text-xs text-orange-100">Hiệu năng cao</p>
+              <img
+                src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1770023253/f211d09ae538f0998ee3f33314aaa8b7_n4uzoe.png"
+                alt=""
+                className="absolute inset-0 w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
+              />
             </Link>
             <Link
-              to="/products?search=ssd"
-              className="h-[139px] rounded-xl bg-gradient-to-br from-indigo-400 to-indigo-500 text-white p-4 shadow-md hover:shadow-lg transition-shadow flex flex-col justify-between"
+              to=""
+              className="relative h-[139px] rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow group"
             >
-              <h3 className="text-sm font-bold mb-1">SSD NVMe</h3>
-              <p className="text-xs text-indigo-100">Tốc độ nhanh</p>
+              <img
+                src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1770024330/huawei-mate-x7-home-0225_iyzqrf.webp"
+                alt=""
+                className="absolute inset-0 w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
+              />
             </Link>
             <Link
-              to="/products?search=vga"
-              className="h-[139px] rounded-xl bg-gradient-to-br from-pink-400 to-pink-500 text-white p-4 shadow-md hover:shadow-lg transition-shadow flex flex-col justify-between"
+              to=""
+              className="relative h-[139px] rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow group"
             >
-              <h3 className="text-sm font-bold mb-1">Card đồ họa</h3>
-              <p className="text-xs text-pink-100">RTX Series</p>
+              <img
+                src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1770023571/RightBanner_Apple-Watch_01.2026_lq1cyc.webp"
+                alt=""
+                className="absolute inset-0 w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
+              />
             </Link>
             <Link
-              to="/products?search=psu"
-              className="h-[139px] rounded-xl bg-gradient-to-br from-teal-400 to-teal-500 text-white p-4 shadow-md hover:shadow-lg transition-shadow flex flex-col justify-between"
+              to=""
+              className="relative h-[139px] rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow group"
             >
-              <h3 className="text-sm font-bold mb-1">Nguồn máy tính</h3>
-              <p className="text-xs text-teal-100">80 Plus Gold</p>
+              <img
+                src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1770023571/galaxy-a17-5g-0126-RIGHT_uqddzu.webp"
+                alt=""
+                className="absolute inset-0 w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
+              />
             </Link>
           </div>
         </div>
 
-        {/* Products sections - below slider and categories */}
+        {/* Product sections */}
         <div className="space-y-10 lg:space-y-12">
-          {/* Sản phẩm khuyến mãi */}
+          {/* Promotions section */}
           <section className="py-6 md:py-8 bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50 rounded-3xl border border-amber-200 shadow-md">
             <div className="px-4 md:px-6">
               <div className="flex items-center justify-between mb-6 md:mb-8">
@@ -463,7 +409,7 @@ const Home = () => {
             </div>
           </section>
 
-          {/* Sản phẩm bán chạy */}
+          {/* Best sellers section */}
           <section className="py-6 md:py-8 bg-gradient-to-br from-blue-50 via-primary-50 to-indigo-50 rounded-3xl border border-primary-200 shadow-md">
             <div className="px-4 md:px-6">
               <div className="flex items-center justify-between mb-6 md:mb-8">
@@ -498,7 +444,7 @@ const Home = () => {
             </div>
           </section>
 
-          {/* Phụ kiện máy tính */}
+          {/* Accessories section */}
           <section className="py-6 md:py-8 bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 rounded-3xl border border-emerald-200 shadow-md">
             <div className="px-4 md:px-6">
               <div className="flex items-center justify-between mb-6 md:mb-8">
@@ -533,7 +479,7 @@ const Home = () => {
             </div>
           </section>
 
-          {/* Linh kiện máy tính */}
+          {/* Components section */}
           <section className="py-6 md:py-8 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 rounded-3xl border border-indigo-200 shadow-md">
             <div className="px-4 md:px-6">
               <div className="flex items-center justify-between mb-6 md:mb-8">
@@ -569,10 +515,9 @@ const Home = () => {
           </section>
         </div>
 
-        {/* Trải nghiệm mua sắm 5T */}
+        {/* 5T experience section */}
         <section className="mt-12 md:mt-16 py-8 md:py-12 bg-gradient-to-br from-primary-50 via-white to-primary-50 rounded-3xl border border-primary-200 shadow-lg">
           <div className="max-w-[1200px] mx-auto px-4 md:px-6">
-            {/* Header with Logo */}
             <div className="text-center mb-8 md:mb-12">
               <div className="flex items-center justify-center gap-3 mb-4">
                 <h2 className="text-2xl md:text-3xl font-extrabold text-primary-700">
@@ -584,9 +529,7 @@ const Home = () => {
               </div>
             </div>
 
-            {/* 5T Features Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 md:gap-6">
-              {/* Tốt hơn về giá */}
               <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow border border-gray-100">
                 <div className="flex flex-col items-center text-center">
                   <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4">
@@ -596,7 +539,6 @@ const Home = () => {
                 </div>
               </div>
 
-              {/* Thành viên - HSSV */}
               <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow border border-gray-100">
                 <div className="flex flex-col items-center text-center">
                   <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mb-4">
@@ -607,7 +549,6 @@ const Home = () => {
                 </div>
               </div>
 
-              {/* Thu cũ đổi mới */}
               <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow border border-gray-100">
                 <div className="flex flex-col items-center text-center">
                   <div className="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center mb-4">
@@ -618,7 +559,6 @@ const Home = () => {
                 </div>
               </div>
 
-              {/* Thanh toán - Trả góp */}
               <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow border border-gray-100">
                 <div className="flex flex-col items-center text-center">
                   <div className="w-16 h-16 rounded-full bg-purple-100 flex items-center justify-center mb-4">
@@ -629,7 +569,6 @@ const Home = () => {
                 </div>
               </div>
 
-              {/* Trả máy lỗi */}
               <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow border border-gray-100">
                 <div className="flex flex-col items-center text-center">
                   <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mb-4">

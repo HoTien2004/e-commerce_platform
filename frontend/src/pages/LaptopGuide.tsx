@@ -107,10 +107,9 @@ const LaptopGuide = () => {
           </ul>
         </div>
 
-        {/* CTA */}
         <div className="mt-8 text-center">
           <a
-            href="/products?category=Laptop"
+            href="/products?category=Laptop gaming"
             className="inline-block bg-primary-600 text-white px-8 py-3 rounded-lg hover:bg-primary-700 transition-colors font-semibold"
           >
             Xem danh sách laptop

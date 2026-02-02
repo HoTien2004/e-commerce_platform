@@ -7,6 +7,7 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Products from './pages/Products';
 import Orders from './pages/Orders';
+import OrderDetail from './pages/OrderDetail';
 import Users from './pages/Users';
 import PromoCodes from './pages/PromoCodes';
 
@@ -61,6 +62,16 @@ function App() {
             <ProtectedRoute>
               <AdminLayout>
                 <Orders />
+              </AdminLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/orders/:orderNumber"
+          element={
+            <ProtectedRoute>
+              <AdminLayout>
+                <OrderDetail />
               </AdminLayout>
             </ProtectedRoute>
           }

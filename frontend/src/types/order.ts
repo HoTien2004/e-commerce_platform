@@ -70,6 +70,11 @@ export interface CreateOrderRequest {
     promoCode?: string;
     notes?: string;
     selectedProductIds?: string[]; // Product IDs to include in order
+    customerInfo?: {
+        fullName: string;
+        phone: string;
+        email: string;
+    };
 }
 
 export interface UpdateOrderStatusRequest {

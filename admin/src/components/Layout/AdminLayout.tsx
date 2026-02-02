@@ -14,6 +14,7 @@ import {
 } from 'react-icons/fi';
 import { useAuthStore } from '../../store/authStore';
 import { authService } from '../../services/authService';
+import { resetVerification } from '../ProtectedRoute';
 import toast from 'react-hot-toast';
 
 interface AdminLayoutProps {
@@ -29,11 +30,13 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   const handleLogout = async () => {
     try {
       await authService.logout();
+      resetVerification(); // Reset verification flag
       logout();
       toast.success('Đăng xuất thành công!');
       navigate('/login');
     } catch (error) {
       console.error('Logout error:', error);
+      resetVerification(); // Reset verification flag
       logout();
       navigate('/login');
     }

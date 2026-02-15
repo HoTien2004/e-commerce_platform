@@ -10,6 +10,7 @@ import cartRouter from "./routes/cartRoute";
 import productRouter from "./routes/productRoute";
 import promoCodeRouter from "./routes/promoCodeRoute";
 import orderRouter from "./routes/orderRoute";
+import paymentRouter from "./routes/paymentRoute";
 import adminRouter from "./routes/adminRoute";
 
 dotenv.config();
@@ -44,6 +45,7 @@ app.use("/api/products", productRouter);
 app.use("/api/promo-code", promoCodeRouter);
 app.use("/api/orders", orderRouter);
 app.use("/api/admin", adminRouter);
+app.use("/api/payments", paymentRouter);
 
 // Health check endpoint for Render
 app.get("/health", (req, res) => {

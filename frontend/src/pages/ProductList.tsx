@@ -6,13 +6,15 @@ import { productService } from '../services/productService';
 import { cartService } from '../services/cartService';
 import { useCartStore } from '../store/cartStore';
 import { useCartModalStore } from '../store/cartModalStore';
+import { useAuthStore } from '../store/authStore';
 import type { Product } from '../types/product';
 import { scrollToTop } from '../utils/scrollToTop';
 import toast from 'react-hot-toast';
 
 const ProductList = () => {
-  const { setCart, setLoading: setCartLoading } = useCartStore();
+  const { setCart, setLoading: setCartLoading, addItem } = useCartStore();
   const { addModal } = useCartModalStore();
+  const { isAuthenticated } = useAuthStore();
   const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -382,6 +384,24 @@ const ProductList = () => {
   const handleAddToCart = async (product: Product) => {
     try {
       setCartLoading(true);
+
+      // If not authenticated, use local cart only
+      if (!isAuthenticated) {
+        addItem({
+          productId: {
+            _id: product._id,
+            name: product.name,
+            images: product.images || [],
+          },
+          quantity: 1,
+          price: product.price,
+        });
+        toast.success('Đã thêm vào giỏ hàng');
+        addModal(product, 1);
+        return;
+      }
+
+      // If authenticated, sync with backend
       const response = await cartService.addToCart({
         productId: product._id,
         quantity: 1,

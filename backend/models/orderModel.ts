@@ -62,11 +62,26 @@ const orderSchema = new mongoose.Schema({
         required: true,
         min: 0
     },
+    // Payment method and status
     paymentMethod: {
         type: String,
-        enum: ['cod', 'bank', 'momo'],
+        enum: ['cod', 'vnpay', 'momo'],
         required: true,
         default: 'cod'
+    },
+    paymentStatus: {
+        type: String,
+        enum: ['pending', 'paid', 'failed', 'refunded'],
+        default: 'pending'
+    },
+    paymentProvider: {
+        type: String,
+        enum: ['momo', 'vnpay', null],
+        default: null
+    },
+    paymentTransactionId: {
+        type: String,
+        default: null
     },
     orderStatus: {
         type: String,

@@ -7,9 +7,12 @@ import { FiArrowLeft, FiCreditCard, FiTruck, FiTag, FiX, FiMapPin, FiPlus } from
 import { useCartStore } from '../store/cartStore';
 import { cartService } from '../services/cartService';
 import { useAuthStore } from '../store/authStore';
+import { useModalStore } from '../store/modalStore';
 import { promoCodeService } from '../services/promoCodeService';
 import { profileService, type UserAddress } from '../services/profileService';
 import { orderService } from '../services/orderService';
+import api from '../services/api';
+import { API_ENDPOINTS } from '../config/api';
 import AddressDropdown from '../components/AddressDropdown';
 import AddressAutocomplete from '../components/AddressAutocomplete';
 import toast from 'react-hot-toast';
@@ -36,7 +39,7 @@ const checkoutSchema = z.object({
   phone: z.string().min(10, 'Số điện thoại không hợp lệ'),
   email: z.string().email('Email không hợp lệ'),
   address: z.string().min(1, 'Địa chỉ không được để trống'),
-  paymentMethod: z.enum(['cod', 'bank', 'momo']),
+  paymentMethod: z.enum(['cod', 'vnpay', 'momo']),
   notes: z.string().optional(),
 });
 
@@ -46,7 +49,8 @@ const Checkout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { items, setCart } = useCartStore();
-  const { user } = useAuthStore();
+  const { user, isAuthenticated } = useAuthStore();
+  const { openAuthModal } = useModalStore();
 
   // Get selected product IDs from navigation state
   const selectedProductIds = (location.state as any)?.selectedProductIds as string[] | undefined;
@@ -198,6 +202,13 @@ const Checkout = () => {
   }, [user?.id]); // Only depend on user.id, not the whole user object or setValue
 
   const onSubmit = async (data: CheckoutFormData) => {
+    // Ensure user is authenticated before proceeding
+    if (!isAuthenticated || !user) {
+      toast.error('Vui lòng đăng nhập để tiếp tục thanh toán');
+      openAuthModal('login');
+      return;
+    }
+
     try {
       setIsSubmitting(true);
 
@@ -215,6 +226,41 @@ const Checkout = () => {
       });
 
       if (response.success && response.data.order) {
+        const createdOrder = response.data.order;
+
+        // If payment method is VNPay, create payment URL and redirect to VNPay
+        if (data.paymentMethod === 'vnpay') {
+          try {
+            const paymentResponse = await api.post<{
+              success: boolean;
+              data?: { paymentUrl?: string };
+              message?: string;
+            }>(API_ENDPOINTS.CREATE_VNPAY_PAYMENT, {
+              orderId: createdOrder._id,
+            });
+
+            const paymentUrl = paymentResponse.data.data?.paymentUrl;
+            if (paymentResponse.data.success && paymentUrl) {
+              window.location.href = paymentUrl;
+              return;
+            }
+
+            toast.error(
+              paymentResponse.data.message ||
+                'Không thể tạo liên kết thanh toán VNPay. Vui lòng thử lại hoặc chọn phương thức khác.'
+            );
+          } catch (error: any) {
+            console.error('Error creating VNPay payment:', error);
+            toast.error(
+              error.response?.data?.message ||
+                'Không thể tạo thanh toán VNPay. Vui lòng thử lại hoặc chọn phương thức khác.'
+            );
+          } finally {
+            setIsSubmitting(false);
+          }
+          return;
+        }
+
         toast.success('Đặt hàng thành công!');
 
         // Navigate first, then reload cart from backend to sync state
@@ -521,12 +567,12 @@ const Checkout = () => {
                   <input
                     type="radio"
                     {...register('paymentMethod')}
-                    value="bank"
+                    value="vnpay"
                     className="w-5 h-5 text-primary-600"
                   />
                   <div className="flex-1">
-                    <p className="font-semibold text-gray-900">Chuyển khoản ngân hàng</p>
-                    <p className="text-sm text-gray-500">Chuyển khoản qua tài khoản ngân hàng</p>
+                    <p className="font-semibold text-gray-900">Thanh toán VNPay</p>
+                    <p className="text-sm text-gray-500">Thanh toán qua cổng VNPay</p>
                   </div>
                 </label>
 

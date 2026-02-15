@@ -54,7 +54,7 @@ const createOrder = async (req: Request, res: Response): Promise<Response> => {
                 const productId = item.productId._id?.toString() || item.productId.toString();
                 return selectedProductIds.includes(productId);
             });
-            
+
             if (cartItemsToProcess.length === 0) {
                 return res.status(400).json({
                     success: false,
@@ -135,7 +135,7 @@ const createOrder = async (req: Request, res: Response): Promise<Response> => {
         }
 
         const finalShippingFee = (isFreeShip || subtotal > 1000000) ? 0 : shippingFee;
-        
+
         const total = Math.max(0, subtotal - discount + finalShippingFee);
 
         const bodyFullName = (customerInfo?.fullName || '').trim();
@@ -264,17 +264,17 @@ const getOrders = async (req: Request, res: Response): Promise<Response> => {
 
         // Build query
         const query: any = {};
-        
+
         // If not admin, only show user's own orders
         if (!isAdmin) {
             query.userId = userId;
         }
-        
+
         // Filter by status
         if (status && ['pending', 'shipped', 'delivered', 'cancelled', 'returned'].includes(status as string)) {
             query.orderStatus = status;
         }
-        
+
         // Admin filters
         if (isAdmin) {
             if (orderNumber) {
@@ -306,13 +306,13 @@ const getOrders = async (req: Request, res: Response): Promise<Response> => {
         }
 
         // Get orders with pagination
-        const populateOptions = isAdmin 
+        const populateOptions = isAdmin
             ? [
                 { path: 'userId', select: 'firstName lastName email phone' },
                 { path: 'items.productId', select: 'name images' }
             ]
             : [{ path: 'items.productId', select: 'name images' }];
-        
+
         const orders = await orderModel
             .find(query)
             .populate(populateOptions)
@@ -382,7 +382,7 @@ const getOrderById = async (req: Request, res: Response): Promise<Response> => {
         const user = await userModel.findById(userId);
         const orderUserId = order.userId.toString();
         const currentUserId = userId.toString();
-        
+
         if (orderUserId !== currentUserId && user?.role !== 'admin') {
             return res.status(403).json({
                 success: false,
@@ -463,7 +463,7 @@ const updateOrderStatus = async (req: Request, res: Response): Promise<Response>
         }
 
         // Prevent changing status FROM cancelled or returned (but allow changing TO these statuses)
-        if ((order.orderStatus === 'cancelled' || order.orderStatus === 'returned') && 
+        if ((order.orderStatus === 'cancelled' || order.orderStatus === 'returned') &&
             orderStatus !== order.orderStatus) {
             return res.status(400).json({
                 success: false,
@@ -471,8 +471,26 @@ const updateOrderStatus = async (req: Request, res: Response): Promise<Response>
             });
         }
 
+        const previousStatus = order.orderStatus;
+
         // Update order status
         order.orderStatus = orderStatus;
+
+        // If status changed to delivered for the first time
+        if (previousStatus !== 'delivered' && orderStatus === 'delivered') {
+            // For COD orders, mark payment as paid when successfully delivered
+            if (order.paymentMethod === 'cod' && order.paymentStatus !== 'paid') {
+                order.paymentStatus = 'paid';
+            }
+
+            // Increment product soldCount
+            for (const item of order.items) {
+                await productModel.findByIdAndUpdate(item.productId, {
+                    $inc: { soldCount: item.quantity }
+                });
+            }
+        }
+
         await order.save();
 
         const populatedOrder = await orderModel.findById(order._id)

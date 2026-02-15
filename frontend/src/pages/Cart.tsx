@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FiTrash2, FiPlus, FiMinus, FiShoppingCart, FiArrowRight } from 'react-icons/fi';
 import { useCartStore } from '../store/cartStore';
+import { useAuthStore } from '../store/authStore';
 import { cartService } from '../services/cartService';
 import toast from 'react-hot-toast';
 import type { CartItem } from '../types/cart';
@@ -26,6 +27,7 @@ const isValidImageUrl = (url: string | undefined): boolean => {
 const Cart = () => {
   const navigate = useNavigate();
   const { items, total, itemCount, setCart, updateItem, removeItem, clearCart, setLoading } = useCartStore();
+  const { isAuthenticated } = useAuthStore();
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
@@ -37,6 +39,14 @@ const Cart = () => {
     let abortController: AbortController | null = null;
 
     const loadCart = async () => {
+      // If not authenticated, use local cart only (from localStorage)
+      if (!isAuthenticated) {
+        // Local cart is already loaded from localStorage via Zustand persist
+        setLoading(false);
+        return;
+      }
+
+      // If authenticated, sync with backend
       // If we already have items from localStorage, use them immediately
       // and sync with backend in the background
       if (items.length > 0) {
@@ -91,7 +101,7 @@ const Cart = () => {
         abortController.abort();
       }
     };
-  }, []); // Only run once on mount
+  }, [isAuthenticated]); // Re-run when authentication status changes
 
   // Điều chỉnh trang hiện tại nếu số lượng item thay đổi
   useEffect(() => {
@@ -106,6 +116,15 @@ const Cart = () => {
 
     try {
       setIsUpdating(productId);
+
+      // If not authenticated, use local cart only
+      if (!isAuthenticated) {
+        updateItem(productId, newQuantity);
+        toast.success('Đã cập nhật số lượng');
+        return;
+      }
+
+      // If authenticated, sync with backend
       const response = await cartService.updateCartItem({ productId, quantity: newQuantity });
       setCart(response.data);
       updateItem(productId, newQuantity);
@@ -120,6 +139,15 @@ const Cart = () => {
   const handleRemoveItem = async (productId: string) => {
     try {
       setIsUpdating(productId);
+      
+      // If not authenticated, use local cart only
+      if (!isAuthenticated) {
+        removeItem(productId);
+        toast.success('Đã xóa sản phẩm khỏi giỏ hàng');
+        return;
+      }
+
+      // If authenticated, sync with backend
       const response = await cartService.removeFromCart(productId);
       setCart(response.data);
       removeItem(productId);
@@ -155,6 +183,17 @@ const Cart = () => {
         }
       }
 
+      // If not authenticated, use local cart only
+      if (!isAuthenticated) {
+        for (const productId of productIdsToRemove) {
+          removeItem(productId);
+        }
+        setSelectedItems(new Set());
+        toast.success(`Đã xóa ${productIdsToRemove.length} sản phẩm khỏi giỏ hàng`);
+        return;
+      }
+
+      // If authenticated, sync with backend
       // Remove items sequentially to avoid race conditions
       let successCount = 0;
       for (const productId of productIdsToRemove) {

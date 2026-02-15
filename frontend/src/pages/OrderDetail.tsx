@@ -136,7 +136,7 @@ const OrderDetail = () => {
   const getPaymentMethodLabel = (method: string) => {
     const labels: Record<string, string> = {
       cod: 'Thanh toán khi nhận hàng (COD)',
-      bank: 'Chuyển khoản ngân hàng',
+      vnpay: 'Thanh toán VNPay',
       momo: 'Ví MoMo',
     };
     return labels[method] || method;
@@ -306,9 +306,28 @@ const OrderDetail = () => {
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
                 <FiCreditCard className="w-5 h-5 text-primary-600" />
-                Phương thức thanh toán
+                Thông tin thanh toán
               </h2>
-              <p className="text-gray-900">{getPaymentMethodLabel(order.paymentMethod)}</p>
+              <div className="space-y-3">
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Phương thức thanh toán</p>
+                  <p className="text-gray-900 font-medium">{getPaymentMethodLabel(order.paymentMethod)}</p>
+                </div>
+                {order.paymentStatus && (
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Trạng thái thanh toán</p>
+                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getPaymentStatusColor(order.paymentStatus)}`}>
+                      {getPaymentStatusLabel(order.paymentStatus)}
+                    </span>
+                  </div>
+                )}
+                {order.paymentTransactionId && (
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Mã giao dịch</p>
+                    <p className="text-gray-900 font-mono text-sm">{order.paymentTransactionId}</p>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Notes */}

@@ -7,14 +7,16 @@ import { productService } from '../services/productService';
 import { cartService } from '../services/cartService';
 import { useCartStore } from '../store/cartStore';
 import { useCartModalStore } from '../store/cartModalStore';
+import { useAuthStore } from '../store/authStore';
 import type { Product } from '../types/product';
 import toast from 'react-hot-toast';
 
 const ProductDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const { setCart, setLoading: setCartLoading } = useCartStore();
+  const { setCart, setLoading: setCartLoading, addItem } = useCartStore();
   const { addModal } = useCartModalStore();
+  const { isAuthenticated } = useAuthStore();
   const [product, setProduct] = useState<Product | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -77,6 +79,25 @@ const ProductDetail = () => {
     try {
       setIsAddingToCart(true);
       setCartLoading(true);
+
+      // If not authenticated, use local cart only
+      if (!isAuthenticated) {
+        const primaryImage = product.images?.find((img) => img.isPrimary) || product.images?.[0];
+        addItem({
+          productId: {
+            _id: product._id,
+            name: product.name,
+            images: product.images || [],
+          },
+          quantity,
+          price: product.price,
+        });
+        toast.success('Đã thêm vào giỏ hàng');
+        addModal(product, quantity);
+        return;
+      }
+
+      // If authenticated, sync with backend
       const response = await cartService.addToCart({
         productId: product._id,
         quantity,
@@ -103,6 +124,24 @@ const ProductDetail = () => {
   const handleRelatedProductAddToCart = async (relatedProduct: Product) => {
     try {
       setCartLoading(true);
+
+      // If not authenticated, use local cart only
+      if (!isAuthenticated) {
+        addItem({
+          productId: {
+            _id: relatedProduct._id,
+            name: relatedProduct.name,
+            images: relatedProduct.images || [],
+          },
+          quantity: 1,
+          price: relatedProduct.price,
+        });
+        toast.success('Đã thêm vào giỏ hàng');
+        addModal(relatedProduct, 1);
+        return;
+      }
+
+      // If authenticated, sync with backend
       const response = await cartService.addToCart({
         productId: relatedProduct._id,
         quantity: 1,

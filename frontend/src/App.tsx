@@ -18,6 +18,7 @@ import ProductDetail from './pages/ProductDetail';
 import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import CheckoutSuccess from './pages/CheckoutSuccess';
+import VnpayResult from './pages/VnpayResult';
 import News from './pages/News';
 import Promotions from './pages/Promotions';
 import LaptopGuide from './pages/LaptopGuide';
@@ -95,6 +96,16 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <CheckoutSuccess />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/payment/vnpay/result"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <VnpayResult />
               </Layout>
             </ProtectedRoute>
           }

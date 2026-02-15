@@ -27,7 +27,10 @@ export interface Order {
   subtotal: number;
   discount: number;
   total: number;
-  paymentMethod: 'cod' | 'bank' | 'momo';
+  paymentMethod: 'cod' | 'vnpay' | 'momo';
+  paymentStatus?: 'pending' | 'paid' | 'failed' | 'refunded';
+  paymentProvider?: 'momo' | 'vnpay' | null;
+  paymentTransactionId?: string | null;
   orderStatus: 'pending' | 'shipped' | 'delivered' | 'cancelled' | 'returned';
   promoCode?: string;
   notes?: string;

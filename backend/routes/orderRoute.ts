@@ -44,7 +44,7 @@ const orderRouter = express.Router();
  *           type: number
  *         paymentMethod:
  *           type: string
- *           enum: [cod, bank, momo]
+ *           enum: [cod, vnpay, momo]
  *         orderStatus:
  *           type: string
  *           enum: [pending, shipped, delivered, cancelled, returned]
@@ -77,7 +77,7 @@ const orderRouter = express.Router();
  *           description: "Shipping address"
  *         paymentMethod:
  *           type: string
- *           enum: [cod, bank, momo]
+ *           enum: [cod, vnpay, momo]
  *           default: cod
  *         promoCode:
  *           type: string

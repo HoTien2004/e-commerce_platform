@@ -56,5 +56,8 @@ export const API_ENDPOINTS = {
   ORDER_BY_ID: (orderId: string) => `/orders/${orderId}`,
   UPDATE_ORDER_STATUS: (orderId: string) => `/orders/${orderId}/status`,
   CANCEL_ORDER: (orderId: string) => `/orders/${orderId}/cancel`,
+
+  // Payments
+  CREATE_VNPAY_PAYMENT: '/payments/vnpay/create',
 } as const;
 

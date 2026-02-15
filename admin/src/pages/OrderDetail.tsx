@@ -218,10 +218,32 @@ const OrderDetail = () => {
                 <span className="text-gray-600">Phương thức thanh toán:</span>
                 <span className="font-medium">
                   {order.paymentMethod === 'cod' ? 'Thanh toán khi nhận hàng' :
-                   order.paymentMethod === 'bank' ? 'Chuyển khoản ngân hàng' :
+                   order.paymentMethod === 'vnpay' ? 'Thanh toán VNPay' :
                    order.paymentMethod === 'momo' ? 'Ví MoMo' : order.paymentMethod}
                 </span>
               </div>
+              {order.paymentStatus && (
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Trạng thái thanh toán:</span>
+                  <span className={`font-medium px-2 py-1 rounded ${
+                    order.paymentStatus === 'paid' ? 'text-green-600 bg-green-50' :
+                    order.paymentStatus === 'failed' ? 'text-red-600 bg-red-50' :
+                    order.paymentStatus === 'refunded' ? 'text-gray-600 bg-gray-50' :
+                    'text-yellow-600 bg-yellow-50'
+                  }`}>
+                    {order.paymentStatus === 'paid' ? 'Đã thanh toán' :
+                     order.paymentStatus === 'failed' ? 'Thanh toán thất bại' :
+                     order.paymentStatus === 'refunded' ? 'Đã hoàn tiền' :
+                     'Chờ thanh toán'}
+                  </span>
+                </div>
+              )}
+              {order.paymentTransactionId && (
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Mã giao dịch:</span>
+                  <span className="font-medium font-mono text-sm">{order.paymentTransactionId}</span>
+                </div>
+              )}
               {order.promoCode && (
                 <div className="flex justify-between">
                   <span className="text-gray-600">Mã khuyến mãi:</span>

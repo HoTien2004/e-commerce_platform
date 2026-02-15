@@ -29,7 +29,10 @@ export interface Order {
     subtotal: number;
     discount: number;
     total: number;
-    paymentMethod: 'cod' | 'bank' | 'momo';
+    paymentMethod: 'cod' | 'vnpay' | 'momo';
+    paymentStatus?: 'pending' | 'paid' | 'failed' | 'refunded';
+    paymentProvider?: 'momo' | 'vnpay' | null;
+    paymentTransactionId?: string | null;
     orderStatus: 'pending' | 'shipped' | 'delivered' | 'cancelled' | 'returned';
     promoCode?: string | null;
     notes?: string | null;
@@ -66,7 +69,7 @@ export interface OrderResponse {
 
 export interface CreateOrderRequest {
     shippingAddress: string;
-    paymentMethod?: 'cod' | 'bank' | 'momo';
+    paymentMethod?: 'cod' | 'vnpay' | 'momo';
     promoCode?: string;
     notes?: string;
     selectedProductIds?: string[]; // Product IDs to include in order

@@ -142,6 +142,26 @@ const OrderDetail = () => {
     return labels[method] || method;
   };
 
+  const getPaymentStatusLabel = (status?: string) => {
+    const labels: Record<string, string> = {
+      pending: 'Chờ thanh toán',
+      paid: 'Đã thanh toán',
+      failed: 'Thanh toán thất bại',
+      refunded: 'Đã hoàn tiền',
+    };
+    return labels[status || 'pending'] || status || 'Chưa xác định';
+  };
+
+  const getPaymentStatusColor = (status?: string) => {
+    const colors: Record<string, string> = {
+      pending: 'text-yellow-600 bg-yellow-50 border-yellow-200',
+      paid: 'text-green-600 bg-green-50 border-green-200',
+      failed: 'text-red-600 bg-red-50 border-red-200',
+      refunded: 'text-gray-600 bg-gray-50 border-gray-200',
+    };
+    return colors[status || 'pending'] || 'text-gray-600 bg-gray-50 border-gray-200';
+  };
+
   if (!isAuthenticated) {
     return null;
   }
@@ -230,10 +250,10 @@ const OrderDetail = () => {
                   return (
                     <div key={item._id} className="flex gap-4 pb-4 border-b border-gray-200 last:border-0 last:pb-0">
                       <div className="flex-shrink-0 w-20 h-20 bg-primary-50 rounded-lg overflow-hidden border-2 border-primary-600">
-                        {primaryImage && 
-                         primaryImage.url && 
-                         isValidImageUrl(primaryImage.url) && 
-                         !imageErrors.has(primaryImage.url) ? (
+                        {primaryImage &&
+                          primaryImage.url &&
+                          isValidImageUrl(primaryImage.url) &&
+                          !imageErrors.has(primaryImage.url) ? (
                           <img
                             src={primaryImage.url}
                             alt={item.name}

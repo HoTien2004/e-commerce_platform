@@ -10,7 +10,7 @@ const Help = () => {
               <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Trung tâm hỗ trợ</h1>
               <p className="text-sm md:text-base text-gray-600 max-w-2xl">
                 Nếu bạn gặp vấn đề với đăng nhập, đặt lại mật khẩu hoặc đơn hàng, hãy xem các hướng dẫn nhanh
-                bên dưới hoặc liên hệ đội ngũ TechStore để được hỗ trợ.
+                bên dưới hoặc liên hệ đội ngũ HDQTShop để được hỗ trợ.
               </p>
             </div>
             <div className="flex items-center gap-3 bg-white rounded-2xl border border-gray-200 px-4 py-3 shadow-sm">
@@ -70,7 +70,7 @@ const Help = () => {
                 </li>
                 <li className="flex items-center gap-2">
                   <FiMail className="w-4 h-4 text-gray-500" />
-                  <span>Email: support@techstore.com</span>
+                  <span>Email: support@hdqtshop.com</span>
                 </li>
                 <li>• Zalo: 0909 999 999</li>
               </ul>

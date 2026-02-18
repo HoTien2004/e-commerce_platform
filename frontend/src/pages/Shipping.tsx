@@ -8,7 +8,7 @@ const Shipping = () => {
           <div className="mb-8">
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Giao hàng & thanh toán</h1>
             <p className="text-sm md:text-base text-gray-600 max-w-3xl">
-              Thông tin về hình thức giao hàng, phạm vi áp dụng và phương thức thanh toán hỗ trợ tại TechStore.
+              Thông tin về hình thức giao hàng, phạm vi áp dụng và phương thức thanh toán hỗ trợ tại HDQTShop.
             </p>
           </div>
 
@@ -22,7 +22,7 @@ const Shipping = () => {
               </div>
               <ul className="text-sm md:text-base text-gray-600 space-y-1">
                 <li>• Giao hàng tận nơi trên toàn quốc thông qua đối tác vận chuyển.</li>
-                <li>• Nhận hàng tại cửa hàng TechStore (áp dụng với một số khu vực).</li>
+                <li>• Nhận hàng tại cửa hàng HDQTShop (áp dụng với một số khu vực).</li>
                 <li>• Kiểm tra ngoại quan sản phẩm trước khi nhận hàng.</li>
               </ul>
             </div>
@@ -36,7 +36,7 @@ const Shipping = () => {
               </div>
               <ul className="text-sm md:text-base text-gray-600 space-y-1">
                 <li>• Thanh toán khi nhận hàng (COD) với một số khu vực được hỗ trợ.</li>
-                <li>• Chuyển khoản ngân hàng theo thông tin tài khoản TechStore.</li>
+                <li>• Chuyển khoản ngân hàng theo thông tin tài khoản HDQTShop.</li>
                 <li>• Thanh toán online qua cổng thanh toán (nếu được hỗ trợ).</li>
               </ul>
             </div>

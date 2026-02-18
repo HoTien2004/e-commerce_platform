@@ -52,7 +52,7 @@ const Promotions = () => {
             <h1 className="text-3xl font-bold text-gray-900">Khuyến mãi & Voucher</h1>
           </div>
           <p className="text-gray-600">
-            Các chương trình khuyến mãi và voucher đang diễn ra tại TechStore
+            Các chương trình khuyến mãi và voucher đang diễn ra tại HDQTShop
           </p>
         </div>
 

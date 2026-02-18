@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { FiStar, FiShoppingCart, FiPlus, FiMinus, FiCopy, FiCheck, FiMessageCircle, FiShield, FiHeadphones, FiDollarSign, FiPackage, FiRefreshCw, FiGrid, FiArrowRight } from 'react-icons/fi';
+import { FiStar, FiShoppingCart, FiPlus, FiMinus, FiCopy, FiCheck, FiMessageCircle, FiShield, FiHeadphones, FiDollarSign, FiPackage, FiRefreshCw, FiGrid, FiArrowRight, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { FaFacebook, FaTiktok, FaTwitter, FaPinterest, FaFacebookMessenger } from 'react-icons/fa';
 import ProductCard from '../components/ProductCard';
 import { productService } from '../services/productService';
 import { cartService } from '../services/cartService';
+import { reviewService, type Review } from '../services/reviewService';
 import { useCartStore } from '../store/cartStore';
 import { useCartModalStore } from '../store/cartModalStore';
 import { useAuthStore } from '../store/authStore';
@@ -16,7 +17,7 @@ const ProductDetail = () => {
   const navigate = useNavigate();
   const { setCart, setLoading: setCartLoading, addItem } = useCartStore();
   const { addModal } = useCartModalStore();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
   const [product, setProduct] = useState<Product | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -27,6 +28,19 @@ const ProductDetail = () => {
   const thumbnailsRef = useRef<HTMLDivElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const dragState = useRef<{ startX: number; scrollLeft: number }>({ startX: 0, scrollLeft: 0 });
+  const [selectedRating, setSelectedRating] = useState<number>(0);
+  const [hoveredRating, setHoveredRating] = useState<number>(0);
+  const [reviewComment, setReviewComment] = useState<string>('');
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [ratingDistribution, setRatingDistribution] = useState<{ 1: number; 2: number; 3: number; 4: number; 5: number }>({ 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [selectedRatingFilter, setSelectedRatingFilter] = useState<number | undefined>(undefined);
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [hasRated, setHasRated] = useState<boolean>(false);
+  const [userRating, setUserRating] = useState<number | null>(null);
+  const [userRatingsMap, setUserRatingsMap] = useState<Map<string, number>>(new Map());
 
   useEffect(() => {
     if (slug) {
@@ -37,8 +51,23 @@ const ProductDetail = () => {
   useEffect(() => {
     if (product) {
       fetchRelatedProducts();
+      fetchReviews();
     }
-  }, [product]);
+  }, [product, currentPage, selectedRatingFilter]);
+
+  // Check if user has rated and build user ratings map when product changes
+  useEffect(() => {
+    if (product?._id) {
+      if (isAuthenticated && user?.id) {
+        checkUserRating();
+      } else {
+        setHasRated(false);
+        setUserRating(null);
+      }
+      // Build user ratings map from all reviews
+      buildUserRatingsMap();
+    }
+  }, [product?._id, isAuthenticated, user?.id]);
 
   const fetchProduct = async () => {
     try {
@@ -73,6 +102,221 @@ const ProductDetail = () => {
     }
   };
 
+  const buildUserRatingsMap = async () => {
+    if (!product?._id) return;
+
+    try {
+      // Fetch all reviews to build complete ratings map
+      const response = await reviewService.getProductReviews(
+        product._id,
+        1,
+        1000 // Large limit to get all reviews
+      );
+
+      if (response.success && response.data) {
+        const ratingsMap = new Map<string, number>();
+        response.data.reviews.forEach((review: Review) => {
+          if (review.rating !== null && review.rating !== undefined) {
+            const userId = review.userId._id;
+            // Only set if not already set (keep the first/oldest rating)
+            if (!ratingsMap.has(userId)) {
+              ratingsMap.set(userId, review.rating);
+            }
+          }
+        });
+        setUserRatingsMap(ratingsMap);
+
+        // Also check if current user has rated
+        if (isAuthenticated && user?.id) {
+          const userReviewWithRating = response.data.reviews.find(
+            (review: Review) =>
+              review.userId._id === user.id &&
+              review.rating !== null &&
+              review.rating !== undefined
+          );
+
+          if (userReviewWithRating) {
+            setHasRated(true);
+            setUserRating(userReviewWithRating.rating);
+          } else {
+            setHasRated(false);
+            setUserRating(null);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error building user ratings map:', error);
+    }
+  };
+
+  const checkUserRating = async () => {
+    if (!product?._id || !isAuthenticated || !user?.id) return;
+
+    try {
+      // Fetch all reviews to check if user has rated
+      const response = await reviewService.getProductReviews(
+        product._id,
+        1,
+        1000 // Large limit to get all reviews
+      );
+
+      if (response.success && response.data) {
+        const userReviewWithRating = response.data.reviews.find(
+          (review: Review) =>
+            review.userId._id === user.id &&
+            review.rating !== null &&
+            review.rating !== undefined
+        );
+
+        if (userReviewWithRating) {
+          setHasRated(true);
+          setUserRating(userReviewWithRating.rating);
+        } else {
+          setHasRated(false);
+          setUserRating(null);
+        }
+      }
+    } catch (error) {
+      console.error('Error checking user rating:', error);
+      // On error, assume not rated
+      setHasRated(false);
+      setUserRating(null);
+    }
+  };
+
+  const fetchReviews = async () => {
+    if (!product?._id) return;
+    try {
+      setReviewsLoading(true);
+      const response = await reviewService.getProductReviews(
+        product._id,
+        currentPage,
+        10,
+        selectedRatingFilter
+      );
+      if (response.success && response.data) {
+        setReviews(response.data.reviews);
+        setRatingDistribution(response.data.ratingDistribution);
+        setTotalPages(response.data.pagination.totalPages);
+      }
+    } catch (error: any) {
+      console.error('Error fetching reviews:', error);
+      toast.error('Không thể tải đánh giá');
+    } finally {
+      setReviewsLoading(false);
+    }
+  };
+
+  const handleSubmitReview = async () => {
+    if (!product || !isAuthenticated) {
+      toast.error('Vui lòng đăng nhập để đánh giá');
+      return;
+    }
+
+    // If user hasn't rated yet, rating is required
+    if (!hasRated && selectedRating === 0) {
+      toast.error('Vui lòng chọn số sao đánh giá');
+      return;
+    }
+
+    // If user has already rated, only allow comment (no rating)
+    if (hasRated && !reviewComment.trim()) {
+      toast.error('Vui lòng nhập bình luận');
+      return;
+    }
+
+    try {
+      setIsSubmittingReview(true);
+      const response = await reviewService.createReview({
+        productId: product._id,
+        // Only send rating if user hasn't rated yet
+        rating: hasRated ? undefined : selectedRating,
+        comment: reviewComment.trim() || undefined,
+      });
+
+      if (response.success) {
+        toast.success(hasRated ? 'Bình luận đã được gửi thành công!' : 'Đánh giá đã được gửi thành công!');
+        if (!hasRated && selectedRating) {
+          // User just rated for the first time
+          setHasRated(true);
+          setUserRating(selectedRating);
+          // Update userRatingsMap
+          if (user?.id) {
+            setUserRatingsMap(prev => {
+              const newMap = new Map(prev);
+              newMap.set(user.id, selectedRating);
+              return newMap;
+            });
+          }
+        }
+        if (!hasRated) {
+          setSelectedRating(0);
+        }
+        setReviewComment('');
+        // Refresh reviews, product, and user ratings map
+        await fetchReviews();
+        await fetchProduct();
+        await buildUserRatingsMap();
+      }
+    } catch (error: any) {
+      console.error('Error submitting review:', error);
+      const errorMessage = error.response?.data?.message || 'Không thể gửi đánh giá';
+      toast.error(errorMessage);
+      // If error is about already rated, update state
+      if (errorMessage.includes('đã đánh giá')) {
+        setHasRated(true);
+      }
+    } finally {
+      setIsSubmittingReview(false);
+    }
+  };
+
+  const handleToggleLike = async (reviewId: string) => {
+    if (!isAuthenticated) {
+      toast.error('Vui lòng đăng nhập để thích đánh giá');
+      return;
+    }
+
+    try {
+      const response = await reviewService.toggleReviewLike(reviewId);
+      if (response.success) {
+        // Update local state
+        setReviews((prev) =>
+          prev.map((review) =>
+            review._id === reviewId
+              ? {
+                ...review,
+                userLiked: response.data.liked,
+                helpfulCount: response.data.helpfulCount,
+              }
+              : review
+          )
+        );
+      }
+    } catch (error: any) {
+      console.error('Error toggling like:', error);
+      toast.error('Không thể cập nhật lượt thích');
+    }
+  };
+
+  const formatTimeAgo = (dateString: string): string => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+    if (diffInSeconds < 60) return 'Vừa xong';
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} phút trước`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} giờ trước`;
+    if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)} ngày trước`;
+    if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 604800)} tuần trước`;
+    if (diffInSeconds < 31536000) return `${Math.floor(diffInSeconds / 2592000)} tháng trước`;
+    return `${Math.floor(diffInSeconds / 31536000)} năm trước`;
+  };
+
+  const getInitials = (firstName: string, lastName: string): string => {
+    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  };
+
   const handleAddToCart = async () => {
     if (!product) return;
 
@@ -82,15 +326,22 @@ const ProductDetail = () => {
 
       // If not authenticated, use local cart only
       if (!isAuthenticated) {
-        const primaryImage = product.images?.find((img) => img.isPrimary) || product.images?.[0];
         addItem({
+          _id: product._id,
           productId: {
             _id: product._id,
             name: product.name,
-            images: product.images || [],
+            slug: product.slug,
+            price: product.price,
+            images: (product.images || []).map(img => ({
+              url: img.url,
+              isPrimary: img.isPrimary || false,
+            })),
+            stock: product.stock,
           },
           quantity,
           price: product.price,
+          addedAt: new Date().toISOString(),
         });
         toast.success('Đã thêm vào giỏ hàng');
         addModal(product, quantity);
@@ -128,13 +379,21 @@ const ProductDetail = () => {
       // If not authenticated, use local cart only
       if (!isAuthenticated) {
         addItem({
+          _id: relatedProduct._id,
           productId: {
             _id: relatedProduct._id,
             name: relatedProduct.name,
-            images: relatedProduct.images || [],
+            slug: relatedProduct.slug,
+            price: relatedProduct.price,
+            images: (relatedProduct.images || []).map(img => ({
+              url: img.url,
+              isPrimary: img.isPrimary || false,
+            })),
+            stock: relatedProduct.stock,
           },
           quantity: 1,
           price: relatedProduct.price,
+          addedAt: new Date().toISOString(),
         });
         toast.success('Đã thêm vào giỏ hàng');
         addModal(relatedProduct, 1);
@@ -411,7 +670,7 @@ const ProductDetail = () => {
               </div>
 
               {/* Rating */}
-              {product.rating && product.rating.count > 0 && (
+              {product.rating && (product.rating.ratingCount || product.rating.count) > 0 && (
                 <div className="flex items-center gap-2 mb-4">
                   <div className="flex items-center">
                     {[...Array(5)].map((_, i) => (
@@ -425,7 +684,7 @@ const ProductDetail = () => {
                     ))}
                   </div>
                   <span className="text-sm text-gray-600">
-                    {product.rating.average.toFixed(1)} ({product.rating.count} đánh giá)
+                    {product.rating.average.toFixed(1)} ({product.rating.ratingCount || product.rating.count || 0} đánh giá)
                   </span>
                 </div>
               )}
@@ -691,6 +950,317 @@ const ProductDetail = () => {
             )}
           </div>
         )}
+
+        {/* Product Reviews Section */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+          <h2 className="text-2xl font-semibold text-gray-900 mb-6">Đánh giá sản phẩm</h2>
+
+          {/* Rating Overview */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 pb-8 border-b border-gray-200">
+            {/* Average Rating */}
+            <div className="text-center">
+              <div className="text-5xl font-bold text-primary-600 mb-2">
+                {product.rating?.average ? product.rating.average.toFixed(1) : '0.0'}
+              </div>
+              <div className="flex items-center justify-center gap-1 mb-2">
+                {[...Array(5)].map((_, i) => {
+                  const average = product.rating?.average || 0;
+                  const filled = i < Math.floor(average);
+                  const halfFilled = i === Math.floor(average) && average % 1 >= 0.5;
+                  return (
+                    <FiStar
+                      key={i}
+                      className={`w-6 h-6 ${filled
+                        ? 'text-yellow-400 fill-current'
+                        : halfFilled
+                          ? 'text-yellow-400 fill-current opacity-50'
+                          : 'text-gray-300'
+                        }`}
+                    />
+                  );
+                })}
+              </div>
+              <p className="text-sm text-gray-600">
+                {product.rating?.ratingCount || product.rating?.count || 0} đánh giá
+              </p>
+            </div>
+
+            {/* Rating Distribution */}
+            <div className="md:col-span-2 space-y-2">
+              {[5, 4, 3, 2, 1].map((starCount) => {
+                const count = ratingDistribution[starCount as keyof typeof ratingDistribution] || 0;
+                const total = product.rating?.ratingCount || product.rating?.count || 0;
+                const percentage = total > 0 ? (count / total) * 100 : 0;
+                return (
+                  <button
+                    key={starCount}
+                    onClick={() => {
+                      if (selectedRatingFilter === starCount) {
+                        setSelectedRatingFilter(undefined);
+                        setCurrentPage(1);
+                      } else {
+                        setSelectedRatingFilter(starCount);
+                        setCurrentPage(1);
+                      }
+                    }}
+                    className={`flex items-center gap-3 w-full text-left hover:bg-gray-50 p-2 rounded transition-colors ${selectedRatingFilter === starCount ? 'bg-primary-50' : ''
+                      }`}
+                  >
+                    <div className="flex items-center gap-1 w-20">
+                      <span className="text-sm font-medium text-gray-700 w-4">{starCount}</span>
+                      <FiStar className="w-4 h-4 text-yellow-400 fill-current" />
+                    </div>
+                    <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-yellow-400 transition-all"
+                        style={{ width: `${percentage}%` }}
+                      />
+                    </div>
+                    <span className="text-sm text-gray-600 w-12 text-right">{count}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Add Review Form */}
+          <div className="mb-8 pb-8 border-b border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Viết đánh giá</h3>
+            <div className="space-y-4">
+              {/* Star Rating Selection */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Đánh giá của bạn
+                </label>
+                <div className="flex items-center gap-1">
+                  {[1, 2, 3, 4, 5].map((star) => {
+                    // If user has already rated, show their rating as read-only
+                    const displayRating = hasRated ? userRating : (hoveredRating || selectedRating);
+                    const isFilled = star <= (displayRating || 0);
+                    return (
+                      <button
+                        key={star}
+                        type="button"
+                        disabled={hasRated}
+                        className={`focus:outline-none transition-transform ${hasRated
+                          ? 'cursor-not-allowed opacity-60'
+                          : 'hover:scale-110'
+                          }`}
+                        onClick={() => !hasRated && setSelectedRating(star)}
+                        onMouseEnter={() => !hasRated && setHoveredRating(star)}
+                        onMouseLeave={() => !hasRated && setHoveredRating(0)}
+                      >
+                        <FiStar
+                          className={`w-8 h-8 transition-colors ${isFilled
+                            ? 'text-yellow-400 fill-current'
+                            : 'text-gray-300'
+                            }`}
+                        />
+                      </button>
+                    );
+                  })}
+                  {(hasRated ? userRating : selectedRating) > 0 && (
+                    <span className="ml-3 text-sm text-gray-600">
+                      {hasRated && <span className="text-gray-500 italic">(Đã đánh giá) </span>}
+                      {(hasRated ? userRating : selectedRating) === 1 && 'Rất không hài lòng'}
+                      {(hasRated ? userRating : selectedRating) === 2 && 'Không hài lòng'}
+                      {(hasRated ? userRating : selectedRating) === 3 && 'Bình thường'}
+                      {(hasRated ? userRating : selectedRating) === 4 && 'Hài lòng'}
+                      {(hasRated ? userRating : selectedRating) === 5 && 'Rất hài lòng'}
+                    </span>
+                  )}
+                </div>
+                {hasRated && (
+                  <p className="mt-2 text-sm text-gray-500 italic">
+                    Bạn đã đánh giá sản phẩm này. Bạn chỉ có thể thêm bình luận.
+                  </p>
+                )}
+              </div>
+
+              {/* Comment Input */}
+              <div>
+                <label htmlFor="review-comment" className="block text-sm font-medium text-gray-700 mb-2">
+                  Bình luận
+                </label>
+                <textarea
+                  id="review-comment"
+                  rows={4}
+                  value={reviewComment}
+                  onChange={(e) => setReviewComment(e.target.value)}
+                  disabled={!hasRated && selectedRating === 0}
+                  className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none ${!hasRated && selectedRating === 0
+                      ? 'bg-gray-100 cursor-not-allowed opacity-60'
+                      : ''
+                    }`}
+                  placeholder={
+                    !hasRated && selectedRating === 0
+                      ? "Vui lòng chọn số sao đánh giá trước..."
+                      : "Chia sẻ trải nghiệm của bạn về sản phẩm này..."
+                  }
+                />
+              </div>
+
+              {/* Submit Button */}
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  disabled={
+                    (!hasRated && selectedRating === 0) ||
+                    (hasRated && !reviewComment.trim()) ||
+                    isSubmittingReview
+                  }
+                  className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={handleSubmitReview}
+                >
+                  {isSubmittingReview ? 'Đang gửi...' : 'Gửi đánh giá'}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Reviews List */}
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Tất cả đánh giá ({product.rating?.ratingCount || product.rating?.count || 0})
+              </h3>
+              {selectedRatingFilter && (
+                <button
+                  onClick={() => {
+                    setSelectedRatingFilter(undefined);
+                    setCurrentPage(1);
+                  }}
+                  className="text-sm text-primary-600 hover:text-primary-700"
+                >
+                  Xóa bộ lọc
+                </button>
+              )}
+            </div>
+
+            {reviewsLoading ? (
+              <div className="text-center py-12">
+                <FiRefreshCw className="w-8 h-8 mx-auto mb-3 text-gray-400 animate-spin" />
+                <p className="text-gray-500">Đang tải đánh giá...</p>
+              </div>
+            ) : reviews.length > 0 ? (
+              <>
+                <div className="space-y-6">
+                  {reviews.map((review) => {
+                    const userName = `${review.userId.firstName} ${review.userId.lastName}`;
+                    const initials = getInitials(review.userId.firstName, review.userId.lastName);
+                    const avatarUrl = review.userId.avatar;
+                    // If review doesn't have rating, get it from userRatingsMap
+                    const displayRating = review.rating !== null && review.rating !== undefined
+                      ? review.rating
+                      : (userRatingsMap.get(review.userId._id) || 0);
+
+                    return (
+                      <div
+                        key={review._id}
+                        className="border-b border-gray-200 pb-6 last:border-b-0 last:pb-0"
+                      >
+                        <div className="flex items-start gap-4">
+                          {avatarUrl ? (
+                            <img
+                              src={avatarUrl}
+                              alt={userName}
+                              className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
+                              <span className="text-primary-600 font-semibold text-sm">
+                                {initials}
+                              </span>
+                            </div>
+                          )}
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2 flex-wrap">
+                              <h4 className="font-semibold text-gray-900">{userName}</h4>
+                              {displayRating > 0 && (
+                                <div className="flex items-center gap-1">
+                                  {[...Array(5)].map((_, i) => (
+                                    <FiStar
+                                      key={i}
+                                      className={`w-4 h-4 ${i < displayRating
+                                        ? 'text-yellow-400 fill-current'
+                                        : 'text-gray-300'
+                                        }`}
+                                    />
+                                  ))}
+                                </div>
+                              )}
+                              <span className="text-sm text-gray-500">
+                                {formatTimeAgo(review.createdAt)}
+                              </span>
+                              {review.isVerifiedPurchase && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">
+                                  <FiCheck className="w-3 h-3" />
+                                  Đã mua sản phẩm này
+                                </span>
+                              )}
+                            </div>
+                            {review.comment && (
+                              <p className="text-gray-700 mb-2 whitespace-pre-wrap">
+                                {review.comment}
+                              </p>
+                            )}
+                            <div className="flex items-center gap-2 text-sm text-gray-500">
+                              <button
+                                onClick={() => handleToggleLike(review._id)}
+                                className={`flex items-center gap-1 transition-colors ${review.userLiked
+                                  ? 'text-primary-600 font-medium'
+                                  : 'text-gray-500 hover:text-primary-600'
+                                  }`}
+                              >
+                                <span>Hữu ích</span>
+                                {review.helpfulCount > 0 && (
+                                  <span className="font-medium">({review.helpfulCount})</span>
+                                )}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-center gap-2 mt-6 pt-6 border-t border-gray-200">
+                    <button
+                      onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                      disabled={currentPage === 1}
+                      className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      <FiChevronLeft className="w-5 h-5" />
+                    </button>
+                    <span className="px-4 py-2 text-sm text-gray-700">
+                      Trang {currentPage} / {totalPages}
+                    </span>
+                    <button
+                      onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                      disabled={currentPage === totalPages}
+                      className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      <FiChevronRight className="w-5 h-5" />
+                    </button>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="text-center py-12 text-gray-500">
+                <FiMessageCircle className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+                <p className="text-lg font-medium mb-1">Chưa có đánh giá nào</p>
+                <p className="text-sm">
+                  {selectedRatingFilter
+                    ? `Chưa có đánh giá ${selectedRatingFilter} sao`
+                    : 'Hãy là người đầu tiên đánh giá sản phẩm này!'}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
 
         {/* Related Products - Khối riêng */}
         <div className="bg-gradient-to-br from-purple-50 via-pink-50 to-indigo-50 rounded-lg shadow-sm border border-purple-200 p-6">

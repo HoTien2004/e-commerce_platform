@@ -8,7 +8,7 @@ const Privacy = () => {
           <div className="mb-8">
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Chính sách bảo mật thông tin</h1>
             <p className="text-sm md:text-base text-gray-600 max-w-3xl">
-              TechStore tôn trọng và bảo vệ quyền riêng tư của khách hàng, cam kết chỉ sử dụng thông tin vào
+              HDQTShop tôn trọng và bảo vệ quyền riêng tư của khách hàng, cam kết chỉ sử dụng thông tin vào
               mục đích phục vụ mua sắm và chăm sóc khách hàng.
             </p>
           </div>
@@ -23,7 +23,7 @@ const Privacy = () => {
               </div>
               <ul className="text-sm md:text-base text-gray-600 space-y-1">
                 <li>• Họ tên, email, số điện thoại, địa chỉ giao hàng.</li>
-                <li>• Lịch sử đơn hàng và tương tác với TechStore.</li>
+                <li>• Lịch sử đơn hàng và tương tác với HDQTShop.</li>
                 <li>• Không thu thập thông tin thẻ thanh toán nhạy cảm.</li>
               </ul>
             </div>

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { scrollToTop } from '../../utils/scrollToTop';
+import Logo from '../Logo';
 import {
   FiFacebook,
   FiTwitter,
@@ -42,7 +43,7 @@ const Footer = () => {
           <div className="grid grid-cols-1 md:grid-cols-[1.4fr_1fr_1fr_1fr] gap-10 items-start">
             {/* About */}
             <div>
-              <h3 className="text-2xl font-bold mb-4 text-primary-600">TechStore</h3>
+              <Logo className="mb-4" as="div" />
               <p className="text-base leading-relaxed text-secondary-700">
                 Cửa hàng công nghệ chuyên laptop, PC, màn hình và phụ kiện chính hãng. Cam kết sản phẩm
                 chất lượng, bảo hành rõ ràng và hỗ trợ tận tâm.
@@ -155,7 +156,7 @@ const Footer = () => {
               <div className="space-y-2.5 text-base">
                 <p className="inline-flex items-center gap-2">
                   <FiMail className="w-5 h-5 text-secondary-700" />
-                  support@techstore.com
+                  support@hdqtshop.com
                 </p>
                 <p className="inline-flex items-center gap-2">
                   <FiPhone className="w-5 h-5 text-secondary-700" />
@@ -189,7 +190,7 @@ const Footer = () => {
         </div>
         <div className="border-t border-border mt-0 pt-4 flex items-center justify-center text-sm md:text-base text-secondary-600">
           <p className="text-center leading-relaxed pb-4">
-            &copy; Copyright © 2026 Bản quyền của Công ty cổ phẩn TechStore Việt Nam - Trụ sở: 123 Tech
+            &copy; Copyright © 2026 Bản quyền của Công ty cổ phẩn HDQTShop Việt Nam - Trụ sở: 123 Tech
             Street, Quận 1, TP. Hồ Chí Minh.
           </p>
         </div>

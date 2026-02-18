@@ -36,7 +36,7 @@ const FAQ = () => {
     },
     {
       question: 'Làm thế nào để liên hệ hỗ trợ?',
-      answer: 'Bạn có thể liên hệ qua hotline 0909 999 999, email support@techstore.com, hoặc đến trực tiếp cửa hàng. Thời gian hỗ trợ: 8:30 - 21:30 (Thứ 2 - Chủ nhật).',
+      answer: 'Bạn có thể liên hệ qua hotline 0909 999 999, email support@hdqtshop.com, hoặc đến trực tiếp cửa hàng. Thời gian hỗ trợ: 8:30 - 21:30 (Thứ 2 - Chủ nhật).',
     },
   ];
 
@@ -109,10 +109,10 @@ const FAQ = () => {
                 <div>
                   <p className="text-sm font-semibold text-gray-700 mb-1">Email</p>
                   <a
-                    href="mailto:support@techstore.com"
+                    href="mailto:support@hdqtshop.com"
                     className="text-primary-600 hover:text-primary-700 font-medium"
                   >
-                    support@techstore.com
+                    support@hdqtshop.com
                   </a>
                 </div>
                 <div>

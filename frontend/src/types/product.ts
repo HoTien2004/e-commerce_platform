@@ -24,7 +24,8 @@ export interface Product {
     status: 'active' | 'inactive' | 'out_of_stock' | 'discontinued';
     rating: {
         average: number;
-        count: number;
+        count: number; // Total number of reviews (including comments)
+        ratingCount?: number; // Number of users who have rated (only reviews with rating)
     };
     createdAt: string;
     updatedAt: string;

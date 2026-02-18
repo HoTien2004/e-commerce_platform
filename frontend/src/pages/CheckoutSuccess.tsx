@@ -25,7 +25,7 @@ const CheckoutSuccess = () => {
             </div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Đặt hàng thành công!</h1>
             <p className="text-gray-600">
-              Cảm ơn bạn đã mua sắm tại TechStore. Đơn hàng của bạn đang được xử lý.
+              Cảm ơn bạn đã mua sắm tại HDQTShop. Đơn hàng của bạn đang được xử lý.
             </p>
           </div>
 

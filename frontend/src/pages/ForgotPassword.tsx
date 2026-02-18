@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { authService } from '../services/authService';
 import toast from 'react-hot-toast';
 import Footer from '../components/Layout/Footer';
+import Logo from '../components/Logo';
 
 const emailSchema = z.object({
   email: z.string().email('Email không hợp lệ'),
@@ -115,14 +116,12 @@ const ForgotPassword = () => {
       <div className="bg-white/80 border-b border-gray-200 backdrop-blur-sm shadow-sm">
         <div className="max-w-[1200px] mx-auto px-4 md:px-8 py-5 md:py-6 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
-            <Link to="/" className="flex items-center gap-2 min-w-0">
-              <span className="text-xl md:text-2xl font-extrabold text-primary-600 tracking-tight">
-                TechStore
-              </span>
+            <div className="flex items-center gap-2 min-w-0">
+              <Logo className="text-xl md:text-2xl" />
               <span className="text-base md:text-lg ml-2 font-semibold text-gray-800 truncate">
                 Đặt lại mật khẩu
               </span>
-            </Link>
+            </div>
           </div>
           <div className="flex items-center gap-2 text-xs md:text-sm text-gray-600">
             <Link to="/help" className="text-primary-600 hover:text-primary-700 font-medium">

@@ -11,6 +11,7 @@ import {
   FiX,
   FiUser,
   FiTag,
+  FiMessageSquare,
 } from 'react-icons/fi';
 import { useAuthStore } from '../../store/authStore';
 import { authService } from '../../services/authService';
@@ -47,6 +48,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
     { icon: FiPackage, label: 'Sản phẩm', path: '/products' },
     { icon: FiShoppingBag, label: 'Đơn hàng', path: '/orders' },
     { icon: FiUsers, label: 'Người dùng', path: '/users' },
+    { icon: FiMessageSquare, label: 'Đánh giá', path: '/reviews' },
     { icon: FiTag, label: 'Mã khuyến mãi', path: '/promo-codes' },
     { icon: FiSettings, label: 'Cài đặt', path: '/settings' },
   ];
@@ -62,7 +64,14 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
         {/* Logo */}
         <div className="h-16 flex items-center justify-between px-4 border-b border-gray-200">
           {sidebarOpen && (
-            <h1 className="text-xl font-extrabold text-primary-600">TechStore Admin</h1>
+            <h1 className="text-xl font-extrabold" style={{ textShadow: '0 1px 2px rgba(0, 0, 0, 0.1)' }}>
+              <span style={{ color: '#ef4444' }}>H</span>
+              <span style={{ color: '#22c55e' }}>D</span>
+              <span style={{ color: '#f97316' }}>Q</span>
+              <span style={{ color: '#06b6d4' }}>T</span>
+              <span style={{ color: '#1f2937' }}>Shop</span>
+              <span className="ml-2 text-primary-600">Admin</span>
+            </h1>
           )}
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}

@@ -59,5 +59,11 @@ export const API_ENDPOINTS = {
 
   // Payments
   CREATE_VNPAY_PAYMENT: '/payments/vnpay/create',
+
+  // Reviews
+  CREATE_REVIEW: '/reviews',
+  GET_PRODUCT_REVIEWS: (productId: string) => `/reviews/product/${productId}`,
+  TOGGLE_REVIEW_LIKE: (reviewId: string) => `/reviews/${reviewId}/like`,
+  DELETE_REVIEW: (reviewId: string) => `/reviews/${reviewId}`,
 } as const;
 

@@ -10,6 +10,7 @@ import Orders from './pages/Orders';
 import OrderDetail from './pages/OrderDetail';
 import Users from './pages/Users';
 import PromoCodes from './pages/PromoCodes';
+import Reviews from './pages/Reviews';
 
 // Scroll to top on route change
 const ScrollToTop = () => {
@@ -92,6 +93,16 @@ function App() {
             <ProtectedRoute>
               <AdminLayout>
                 <PromoCodes />
+              </AdminLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/reviews"
+          element={
+            <ProtectedRoute>
+              <AdminLayout>
+                <Reviews />
               </AdminLayout>
             </ProtectedRoute>
           }

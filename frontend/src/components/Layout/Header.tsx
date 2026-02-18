@@ -4,10 +4,10 @@ import { useAuthStore } from '../../store/authStore';
 import { useCartStore } from '../../store/cartStore';
 import { useModalStore } from '../../store/modalStore';
 import { productService } from '../../services/productService';
-import { scrollToTop } from '../../utils/scrollToTop';
 import { FiShoppingCart, FiUser, FiLogOut, FiMenu, FiSearch, FiMapPin } from 'react-icons/fi';
 import type { Product } from '../../types/product';
 import toast from 'react-hot-toast';
+import Logo from '../Logo';
 
 const Header = () => {
   const { user, isAuthenticated, logout } = useAuthStore();
@@ -133,9 +133,6 @@ const Header = () => {
     setShowSuggestions(false);
   };
 
-  const handleLogoClick = () => {
-    scrollToTop();
-  };
 
   return (
     <>
@@ -153,13 +150,7 @@ const Header = () => {
         <div className="max-w-[1200px] w-full mx-auto px-0">
           <div className="flex items-center justify-between h-20 gap-8">
             {/* Logo */}
-            <Link 
-              to="/" 
-              onClick={handleLogoClick}
-              className="text-2xl md:text-3xl font-extrabold text-primary-600 tracking-tight"
-            >
-              TechStore
-            </Link>
+            <Logo />
 
             {/* Search bar */}
             <div className="flex-1 max-w-2xl hidden md:flex" ref={searchRef}>
@@ -204,7 +195,7 @@ const Header = () => {
                             >
                               {product.images && product.images.length > 0 ? (
                                 <img
-                                  src={product.images[0]}
+                                  src={product.images[0].url}
                                   alt={product.name}
                                   className="w-12 h-12 object-cover rounded"
                                 />

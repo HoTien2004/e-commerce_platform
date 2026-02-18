@@ -78,26 +78,30 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
           {product.name}
         </h3>
 
-        {/* Rating */}
-        {product.rating && product.rating.count > 0 && (
-          <div className="flex items-center gap-1 mb-2">
-            <div className="flex items-center">
-              {[...Array(5)].map((_, i) => (
+        {/* Rating - Always show */}
+        <div className="flex items-center gap-1 mb-2">
+          <div className="flex items-center">
+            {[...Array(5)].map((_, i) => {
+              const average = product.rating?.average || 0;
+              const filled = i < Math.floor(average);
+              const halfFilled = i === Math.floor(average) && average % 1 >= 0.5;
+              return (
                 <FiStar
                   key={i}
-                  className={`w-3 h-3 ${
-                    i < Math.floor(product.rating.average)
+                  className={`w-3 h-3 ${filled
                       ? 'text-yellow-400 fill-current'
-                      : 'text-gray-300'
-                  }`}
+                      : halfFilled
+                        ? 'text-yellow-400 fill-current opacity-50'
+                        : 'text-gray-300'
+                    }`}
                 />
-              ))}
-            </div>
-            <span className="text-xs text-gray-500 ml-1">
-              ({product.rating.count})
-            </span>
+              );
+            })}
           </div>
-        )}
+          <span className="text-xs text-gray-500 ml-1">
+            ({product.rating?.ratingCount || product.rating?.count || 0})
+          </span>
+        </div>
 
         {/* Price & Sold Count */}
         <div className="mt-auto">

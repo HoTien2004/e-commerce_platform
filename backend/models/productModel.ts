@@ -71,7 +71,8 @@ const productSchema = new mongoose.Schema({
     },
     rating: {
         average: { type: Number, default: 0, min: 0, max: 5 },
-        count: { type: Number, default: 0, min: 0 }
+        count: { type: Number, default: 0, min: 0 }, // Total number of reviews (including comments)
+        ratingCount: { type: Number, default: 0, min: 0 } // Number of users who have rated (only reviews with rating)
     },
     createdAt: {
         type: Date,

@@ -8,7 +8,7 @@ const Terms = () => {
                     <div className="mb-8">
                         <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Điều khoản sử dụng</h1>
                         <p className="text-sm md:text-base text-gray-600 max-w-3xl">
-                            Khi truy cập và mua sắm tại TechStore, bạn đồng ý với các điều khoản sử dụng dưới đây. Vui lòng
+                            Khi truy cập và mua sắm tại HDQTShop, bạn đồng ý với các điều khoản sử dụng dưới đây. Vui lòng
                             đọc kỹ để hiểu rõ quyền lợi và trách nhiệm của mình.
                         </p>
                     </div>
@@ -51,7 +51,7 @@ const Terms = () => {
                             </div>
                             <ul className="text-sm md:text-base text-gray-600 space-y-1">
                                 <li>• Lợi dụng website để lừa đảo, phát tán mã độc, spam.</li>
-                                <li>• Can thiệp trái phép vào hệ thống, dữ liệu của TechStore.</li>
+                                <li>• Can thiệp trái phép vào hệ thống, dữ liệu của HDQTShop.</li>
                                 <li>• Sử dụng thông tin của người khác mà không được phép.</li>
                             </ul>
                         </div>
@@ -65,7 +65,7 @@ const Terms = () => {
                             <h2 className="text-lg font-semibold text-gray-900">Thay đổi điều khoản</h2>
                         </div>
                         <ul className="text-sm md:text-base text-gray-600 space-y-1">
-                            <li>• TechStore có thể điều chỉnh điều khoản để phù hợp với quy định pháp luật.</li>
+                            <li>• HDQTShop có thể điều chỉnh điều khoản để phù hợp với quy định pháp luật.</li>
                             <li>• Các thay đổi sẽ được cập nhật trên website, khách hàng nên kiểm tra định kỳ.</li>
                             <li>• Việc tiếp tục sử dụng website sau khi điều khoản thay đổi đồng nghĩa với việc bạn chấp nhận điều khoản mới.</li>
                         </ul>

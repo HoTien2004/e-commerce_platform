@@ -116,8 +116,8 @@ const Store = () => {
 
   // Store locations
   const stores = [
-    { name: 'TechStore - Quận 1', address: '123 Tech Street, Quận 1, TP. Hồ Chí Minh', position: [10.7769, 106.7009] as [number, number], phone: '0909 999 999' },
-    { name: 'TechStore - Quận 7', address: '456 CMT8, Quận 7, TP. Hồ Chí Minh', position: [10.7294, 106.7219] as [number, number], phone: '0909 888 888' },
+    { name: 'HDQTShop - Quận 1', address: '123 Tech Street, Quận 1, TP. Hồ Chí Minh', position: [10.7769, 106.7009] as [number, number], phone: '0909 999 999' },
+    { name: 'HDQTShop - Quận 7', address: '456 CMT8, Quận 7, TP. Hồ Chí Minh', position: [10.7294, 106.7219] as [number, number], phone: '0909 888 888' },
   ];
 
   // Fetch autocomplete suggestions

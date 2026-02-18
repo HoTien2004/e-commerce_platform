@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { FiTrendingUp, FiZap, FiCpu, FiMonitor, FiHardDrive, FiMousePointer, FiTag, FiBookOpen, FiMessageSquare, FiDollarSign, FiUsers, FiRefreshCw, FiCreditCard, FiShield } from 'react-icons/fi';
+import { FiTrendingUp, FiZap, FiCpu, FiHardDrive, FiMousePointer, FiTag, FiBookOpen, FiMessageSquare, FiDollarSign, FiUsers, FiRefreshCw, FiCreditCard, FiShield } from 'react-icons/fi';
 import ProductCard from '../components/ProductCard';
 import { productService } from '../services/productService';
 import { cartService } from '../services/cartService';
@@ -9,6 +9,7 @@ import { useCartModalStore } from '../store/cartModalStore';
 import { useAuthStore } from '../store/authStore';
 import type { Product } from '../types/product';
 import toast from 'react-hot-toast';
+import Logo from '../components/Logo';
 
 const Home = () => {
   const { setCart, setLoading: setCartLoading, addItem } = useCartStore();
@@ -81,13 +82,21 @@ const Home = () => {
       // If not authenticated, use local cart only
       if (!isAuthenticated) {
         addItem({
+          _id: product._id,
           productId: {
             _id: product._id,
             name: product.name,
-            images: product.images || [],
+            slug: product.slug,
+            price: product.price,
+            images: (product.images || []).map(img => ({
+              url: img.url,
+              isPrimary: img.isPrimary || false,
+            })),
+            stock: product.stock,
           },
           quantity: 1,
           price: product.price,
+          addedAt: new Date().toISOString(),
         });
         toast.success('Đã thêm vào giỏ hàng');
         addModal(product, 1);
@@ -129,105 +138,105 @@ const Home = () => {
                           to="/products?category=PC Gaming"
                           className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-transparent hover:border-primary-100 hover:bg-primary-50 hover:text-primary-700 font-medium text-gray-800 transition-colors"
                         >
-                          <FiCpu className="w-4 h-4 flex-shrink-0" />
+                          <img src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1771138719/icon3_5c59c1dc52ec4b81a94a3edba293e895_ph8ks1.png" alt="PC Gaming" className="w-4 h-4 flex-shrink-0 object-cover rounded" />
                           <span className="truncate">PC Gaming</span>
                         </Link>
                         <Link
                           to="/products?category=PC Văn phòng"
                           className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-transparent hover:border-primary-100 hover:bg-primary-50 hover:text-primary-700 font-medium text-gray-800 transition-colors"
                         >
-                          <FiCpu className="w-4 h-4 flex-shrink-0" />
+                          <img src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1771139274/icon7_cdd85eba03974cb99a3941d076bf5d1b_ynh4a9.png" alt="PC Văn phòng" className="w-4 h-4 flex-shrink-0 object-cover rounded" />
                           <span className="truncate">PC Văn phòng</span>
                         </Link>
                         <Link
                           to="/products?category=PC Workstation"
                           className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-transparent hover:border-primary-100 hover:bg-primary-50 hover:text-primary-700 font-medium text-gray-800 transition-colors"
                         >
-                          <FiCpu className="w-4 h-4 flex-shrink-0" />
+                          <img src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1771138719/icon3_5c59c1dc52ec4b81a94a3edba293e895_ph8ks1.png" alt="PC Workstation" className="w-4 h-4 flex-shrink-0 object-cover rounded" />
                           <span className="truncate">PC Workstation</span>
                         </Link>
                         <Link
                           to="/products?category=PC MINI"
                           className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-transparent hover:border-primary-100 hover:bg-primary-50 hover:text-primary-700 font-medium text-gray-800 transition-colors"
                         >
-                          <FiCpu className="w-4 h-4 flex-shrink-0" />
+                          <img src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1771139274/icon7_cdd85eba03974cb99a3941d076bf5d1b_ynh4a9.png" alt="PC MINI" className="w-4 h-4 flex-shrink-0 object-cover rounded" />
                           <span className="truncate">PC MINI</span>
                         </Link>
                         <Link
                           to="/products?category=Laptop gaming"
                           className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-transparent hover:border-primary-100 hover:bg-primary-50 hover:text-primary-700 font-medium text-gray-800 transition-colors"
                         >
-                          <FiTrendingUp className="w-4 h-4 flex-shrink-0" />
+                          <img src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1771138753/icon1_ce115f32db874a8e9b5af39517176e96_hlxht8.png" alt="Laptop gaming" className="w-4 h-4 flex-shrink-0 object-cover rounded" />
                           <span className="truncate">Laptop gaming</span>
                         </Link>
                         <Link
                           to="/products?category=Laptop văn phòng"
                           className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-transparent hover:border-primary-100 hover:bg-primary-50 hover:text-primary-700 font-medium text-gray-800 transition-colors"
                         >
-                          <FiTrendingUp className="w-4 h-4 flex-shrink-0" />
+                          <img src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1769501245/products/wx8dyy8lytwerxaijqjd.webp" alt="Laptop văn phòng" className="w-4 h-4 flex-shrink-0 object-cover rounded" />
                           <span className="truncate">Laptop văn phòng</span>
                         </Link>
                         <Link
                           to="/products?category=Màn hình"
                           className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-transparent hover:border-primary-100 hover:bg-primary-50 hover:text-primary-700 font-medium text-gray-800 transition-colors"
                         >
-                          <FiMonitor className="w-4 h-4 flex-shrink-0" />
+                          <img src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1769501998/products/iz37eunecdr2zwmbdaez.webp" alt="Màn hình" className="w-4 h-4 flex-shrink-0 object-cover rounded" />
                           <span className="truncate">Màn hình</span>
                         </Link>
                         <Link
                           to="/products?category=Loa máy tính"
                           className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-transparent hover:border-primary-100 hover:bg-primary-50 hover:text-primary-700 font-medium text-gray-800 transition-colors"
                         >
-                          <FiZap className="w-4 h-4 flex-shrink-0" />
+                          <img src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1769503071/products/mvqjrjdbddwjorwr7qyr.jpg" alt="Loa máy tính" className="w-4 h-4 flex-shrink-0 object-cover rounded" />
                           <span className="truncate">Loa máy tính</span>
                         </Link>
                         <Link
                           to="/products?category=Giá treo"
                           className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-transparent hover:border-primary-100 hover:bg-primary-50 hover:text-primary-700 font-medium text-gray-800 transition-colors"
                         >
-                          <FiMonitor className="w-4 h-4 flex-shrink-0" />
+                          <img src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1771139900/am400b_02_53d72271c3cd488e913dc572bd415584_medium_szojzy.png" alt="Giá treo" className="w-4 h-4 flex-shrink-0 object-cover rounded" />
                           <span className="truncate">Giá treo</span>
                         </Link>
                         <Link
                           to="/products?category=Tai nghe"
                           className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-transparent hover:border-primary-100 hover:bg-primary-50 hover:text-primary-700 font-medium text-gray-800 transition-colors"
                         >
-                          <FiMousePointer className="w-4 h-4 flex-shrink-0" />
+                          <img src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1771139318/tai_nghe_ed3b4f52172f40929e1d3ab493099b73_s50zuy.jpg" alt="Tai nghe" className="w-4 h-4 flex-shrink-0 object-cover rounded" />
                           <span className="truncate">Tai nghe</span>
                         </Link>
                         <Link
                           to="/products?category=Chuột"
                           className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-transparent hover:border-primary-100 hover:bg-primary-50 hover:text-primary-700 font-medium text-gray-800 transition-colors"
                         >
-                          <FiMousePointer className="w-4 h-4 flex-shrink-0" />
+                          <img src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1771139317/chuot_aa348bf0177b4795a39ab66d51e62ed7_i4d7yy.jpg" alt="Chuột" className="w-4 h-4 flex-shrink-0 object-cover rounded" />
                           <span className="truncate">Chuột</span>
                         </Link>
                         <Link
                           to="/products?category=Bàn phím"
                           className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-transparent hover:border-primary-100 hover:bg-primary-50 hover:text-primary-700 font-medium text-gray-800 transition-colors"
                         >
-                          <FiMousePointer className="w-4 h-4 flex-shrink-0" />
+                          <img src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1771139318/ban_phim_93a4d3cefd8345dfac23829818a3c5d4_weyqa0.jpg" alt="Bàn phím" className="w-4 h-4 flex-shrink-0 object-cover rounded" />
                           <span className="truncate">Bàn phím</span>
                         </Link>
                         <Link
                           to="/products?category=Pad chuột"
                           className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-transparent hover:border-primary-100 hover:bg-primary-50 hover:text-primary-700 font-medium text-gray-800 transition-colors"
                         >
-                          <FiMousePointer className="w-4 h-4 flex-shrink-0" />
+                          <img src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1771139841/9017_1_403877065bc54e3a9c5098fdfeb709ce_medium_ze84fy.jpg" alt="Pad chuột" className="w-4 h-4 flex-shrink-0 object-cover rounded" />
                           <span className="truncate">Pad chuột</span>
                         </Link>
                         <Link
                           to="/products?category=Phụ kiện"
                           className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-transparent hover:border-primary-100 hover:bg-primary-50 hover:text-primary-700 font-medium text-gray-800 transition-colors"
                         >
-                          <FiMousePointer className="w-4 h-4 flex-shrink-0" />
+                          <img src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1771139722/icon19_0197366bbf124fed9b939c9b7075c2db_zthjti.png" alt="Phụ kiện" className="w-4 h-4 flex-shrink-0 object-cover rounded" />
                           <span className="truncate">Phụ kiện</span>
                         </Link>
                         <Link
                           to="/products?category=Linh kiện máy tính"
                           className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-transparent hover:border-primary-100 hover:bg-primary-50 hover:text-primary-700 font-medium text-gray-800 transition-colors"
                         >
-                          <FiHardDrive className="w-4 h-4 flex-shrink-0" />
+                          <img src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1769503804/products/f0u70kmuyuqu8inocnxj.jpg" alt="Linh kiện máy tính" className="w-4 h-4 flex-shrink-0 object-cover rounded" />
                           <span className="truncate">Linh kiện máy tính</span>
                         </Link>
                       </nav>
@@ -535,6 +544,277 @@ const Home = () => {
           </section>
         </div>
 
+        {/* Product Categories section */}
+        <section className="mt-12 md:mt-16 py-8 md:py-12 bg-gradient-to-br from-white via-primary-50 to-white rounded-3xl border border-primary-200 shadow-lg">
+          <div className="max-w-[1200px] mx-auto px-4 md:px-6">
+            <div className="text-center mb-8 md:mb-12">
+              <h2 className="text-2xl md:text-3xl font-extrabold text-primary-700">
+                Danh mục sản phẩm
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-8 gap-4 md:gap-6">
+              {/* Row 1 - 8 categories */}
+              <Link
+                to="/products?category=PC Gaming"
+                className="bg-white rounded-xl p-4 md:p-6 shadow-md hover:shadow-lg transition-all border border-gray-100 hover:border-primary-300 group"
+              >
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden mb-3 bg-gray-100">
+                    <img
+                      src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1771138719/icon3_5c59c1dc52ec4b81a94a3edba293e895_ph8ks1.png"
+                      alt="PC Gaming"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <h3 className="text-sm md:text-base font-bold text-gray-900 group-hover:text-primary-600 transition-colors">PC Gaming</h3>
+                </div>
+              </Link>
+
+              <Link
+                to="/products?category=PC Văn phòng"
+                className="bg-white rounded-xl p-4 md:p-6 shadow-md hover:shadow-lg transition-all border border-gray-100 hover:border-primary-300 group"
+              >
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden mb-3 bg-gray-100">
+                    <img
+                      src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1771139274/icon7_cdd85eba03974cb99a3941d076bf5d1b_ynh4a9.png"
+                      alt="PC Văn phòng"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <h3 className="text-sm md:text-base font-bold text-gray-900 group-hover:text-primary-600 transition-colors">PC Văn phòng</h3>
+                </div>
+              </Link>
+
+              <Link
+                to="/products?category=PC Workstation"
+                className="bg-white rounded-xl p-4 md:p-6 shadow-md hover:shadow-lg transition-all border border-gray-100 hover:border-primary-300 group"
+              >
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden mb-3 bg-gray-100">
+                    <img
+                      src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1771138719/icon3_5c59c1dc52ec4b81a94a3edba293e895_ph8ks1.png"
+                      alt="PC Workstation"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <h3 className="text-sm md:text-base font-bold text-gray-900 group-hover:text-primary-600 transition-colors">PC Workstation</h3>
+                </div>
+              </Link>
+
+              <Link
+                to="/products?category=PC MINI"
+                className="bg-white rounded-xl p-4 md:p-6 shadow-md hover:shadow-lg transition-all border border-gray-100 hover:border-primary-300 group"
+              >
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden mb-3 bg-gray-100">
+                    <img
+                      src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1771139274/icon7_cdd85eba03974cb99a3941d076bf5d1b_ynh4a9.png"
+                      alt="PC MINI"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <h3 className="text-sm md:text-base font-bold text-gray-900 group-hover:text-primary-600 transition-colors">PC MINI</h3>
+                </div>
+              </Link>
+
+              <Link
+                to="/products?category=Laptop gaming"
+                className="bg-white rounded-xl p-4 md:p-6 shadow-md hover:shadow-lg transition-all border border-gray-100 hover:border-primary-300 group"
+              >
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden mb-3 bg-gray-100">
+                    <img
+                      src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1771138753/icon1_ce115f32db874a8e9b5af39517176e96_hlxht8.png"
+                      alt="Laptop gaming"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <h3 className="text-sm md:text-base font-bold text-gray-900 group-hover:text-primary-600 transition-colors">Laptop gaming</h3>
+                </div>
+              </Link>
+
+              <Link
+                to="/products?category=Laptop văn phòng"
+                className="bg-white rounded-xl p-4 md:p-6 shadow-md hover:shadow-lg transition-all border border-gray-100 hover:border-primary-300 group"
+              >
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden mb-3 bg-gray-100">
+                    <img
+                      src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1769501245/products/wx8dyy8lytwerxaijqjd.webp"
+                      alt="Laptop văn phòng"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <h3 className="text-sm md:text-base font-bold text-gray-900 group-hover:text-primary-600 transition-colors">Laptop văn phòng</h3>
+                </div>
+              </Link>
+
+              <Link
+                to="/products?category=Màn hình"
+                className="bg-white rounded-xl p-4 md:p-6 shadow-md hover:shadow-lg transition-all border border-gray-100 hover:border-primary-300 group"
+              >
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden mb-3 bg-gray-100">
+                    <img
+                      src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1769501998/products/iz37eunecdr2zwmbdaez.webp"
+                      alt="Màn hình"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <h3 className="text-sm md:text-base font-bold text-gray-900 group-hover:text-primary-600 transition-colors">Màn hình</h3>
+                </div>
+              </Link>
+
+              <Link
+                to="/products?category=Loa máy tính"
+                className="bg-white rounded-xl p-4 md:p-6 shadow-md hover:shadow-lg transition-all border border-gray-100 hover:border-primary-300 group"
+              >
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden mb-3 bg-gray-100">
+                    <img
+                      src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1769503071/products/mvqjrjdbddwjorwr7qyr.jpg"
+                      alt="Loa máy tính"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <h3 className="text-sm md:text-base font-bold text-gray-900 group-hover:text-primary-600 transition-colors">Loa máy tính</h3>
+                </div>
+              </Link>
+
+              {/* Row 2 - 7 categories */}
+              <Link
+                to="/products?category=Giá treo"
+                className="bg-white rounded-xl p-4 md:p-6 shadow-md hover:shadow-lg transition-all border border-gray-100 hover:border-primary-300 group"
+              >
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden mb-3 bg-gray-100">
+                    <img
+                      src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1771139900/am400b_02_53d72271c3cd488e913dc572bd415584_medium_szojzy.png"
+                      alt="Giá treo"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <h3 className="text-sm md:text-base font-bold text-gray-900 group-hover:text-primary-600 transition-colors">Giá treo</h3>
+                </div>
+              </Link>
+
+              <Link
+                to="/products?category=Tai nghe"
+                className="bg-white rounded-xl p-4 md:p-6 shadow-md hover:shadow-lg transition-all border border-gray-100 hover:border-primary-300 group"
+              >
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden mb-3 bg-gray-100">
+                    <img
+                      src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1771139318/tai_nghe_ed3b4f52172f40929e1d3ab493099b73_s50zuy.jpg"
+                      alt="Tai nghe"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <h3 className="text-sm md:text-base font-bold text-gray-900 group-hover:text-primary-600 transition-colors">Tai nghe</h3>
+                </div>
+              </Link>
+
+              <Link
+                to="/products?category=Chuột"
+                className="bg-white rounded-xl p-4 md:p-6 shadow-md hover:shadow-lg transition-all border border-gray-100 hover:border-primary-300 group"
+              >
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden mb-3 bg-gray-100">
+                    <img
+                      src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1771139317/chuot_aa348bf0177b4795a39ab66d51e62ed7_i4d7yy.jpg"
+                      alt="Chuột"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <h3 className="text-sm md:text-base font-bold text-gray-900 group-hover:text-primary-600 transition-colors">Chuột</h3>
+                </div>
+              </Link>
+
+              <Link
+                to="/products?category=Bàn phím"
+                className="bg-white rounded-xl p-4 md:p-6 shadow-md hover:shadow-lg transition-all border border-gray-100 hover:border-primary-300 group"
+              >
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden mb-3 bg-gray-100">
+                    <img
+                      src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1771139318/ban_phim_93a4d3cefd8345dfac23829818a3c5d4_weyqa0.jpg"
+                      alt="Bàn phím"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <h3 className="text-sm md:text-base font-bold text-gray-900 group-hover:text-primary-600 transition-colors">Bàn phím</h3>
+                </div>
+              </Link>
+
+              <Link
+                to="/products?category=Pad chuột"
+                className="bg-white rounded-xl p-4 md:p-6 shadow-md hover:shadow-lg transition-all border border-gray-100 hover:border-primary-300 group"
+              >
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden mb-3 bg-gray-100">
+                    <img
+                      src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1771139841/9017_1_403877065bc54e3a9c5098fdfeb709ce_medium_ze84fy.jpg"
+                      alt="Pad chuột"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <h3 className="text-sm md:text-base font-bold text-gray-900 group-hover:text-primary-600 transition-colors">Pad chuột</h3>
+                </div>
+              </Link>
+
+              <Link
+                to="/products?category=Phụ kiện"
+                className="bg-white rounded-xl p-4 md:p-6 shadow-md hover:shadow-lg transition-all border border-gray-100 hover:border-primary-300 group"
+              >
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden mb-3 bg-gray-100">
+                    <img
+                      src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1771139722/icon19_0197366bbf124fed9b939c9b7075c2db_zthjti.png"
+                      alt="Phụ kiện"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <h3 className="text-sm md:text-base font-bold text-gray-900 group-hover:text-primary-600 transition-colors">Phụ kiện</h3>
+                </div>
+              </Link>
+
+              <Link
+                to="/products?category=Linh kiện máy tính"
+                className="bg-white rounded-xl p-4 md:p-6 shadow-md hover:shadow-lg transition-all border border-gray-100 hover:border-primary-300 group"
+              >
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden mb-3 bg-gray-100">
+                    <img
+                      src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1769503804/products/f0u70kmuyuqu8inocnxj.jpg"
+                      alt="Linh kiện máy tính"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <h3 className="text-sm md:text-base font-bold text-gray-900 group-hover:text-primary-600 transition-colors">Linh kiện máy tính</h3>
+                </div>
+              </Link>
+
+              <Link
+                to="/products?category=Linh kiện máy tính"
+                className="bg-white rounded-xl p-4 md:p-6 shadow-md hover:shadow-lg transition-all border border-gray-100 hover:border-primary-300 group"
+              >
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden mb-3 bg-gray-100">
+                    <img
+                      src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1769503804/products/f0u70kmuyuqu8inocnxj.jpg"
+                      alt="Linh kiện máy tính"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <h3 className="text-sm md:text-base font-bold text-gray-900 group-hover:text-primary-600 transition-colors">Linh kiện máy tính</h3>
+                </div>
+              </Link>
+            </div>
+          </div>
+        </section>
+
         {/* 5T experience section */}
         <section className="mt-12 md:mt-16 py-8 md:py-12 bg-gradient-to-br from-primary-50 via-white to-primary-50 rounded-3xl border border-primary-200 shadow-lg">
           <div className="max-w-[1200px] mx-auto px-4 md:px-6">
@@ -543,9 +823,7 @@ const Home = () => {
                 <h2 className="text-2xl md:text-3xl font-extrabold text-primary-700">
                   Trải nghiệm mua sắm 5T tại
                 </h2>
-                <span className="text-2xl md:text-3xl font-extrabold text-primary-600 tracking-tight">
-                  TechStore
-                </span>
+                <Logo />
               </div>
             </div>
 

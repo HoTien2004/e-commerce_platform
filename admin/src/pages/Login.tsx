@@ -33,7 +33,7 @@ const Login = () => {
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
     setErrorMessage(null); // Clear previous error
-    
+
     try {
       const response = await authService.login(data);
 
@@ -47,20 +47,20 @@ const Login = () => {
 
         // Reset verification flag before login
         resetVerification();
-        
+
         // Set auth state
         setAuth(
           response.data.user,
           response.data.accessToken,
           response.data.refreshToken
         );
-        
+
         // Mark as verified since we just logged in successfully
         // This prevents ProtectedRoute from re-verifying immediately
         markAsVerified();
-        
+
         toast.success('Đăng nhập thành công!');
-        
+
         // Navigate after a small delay to ensure state is updated
         setTimeout(() => {
           navigate('/', { replace: true });
@@ -71,12 +71,12 @@ const Login = () => {
     } catch (error: any) {
       console.error('Login error:', error);
       let errorMsg = 'Đăng nhập thất bại. Vui lòng thử lại.';
-      
+
       if (error.response) {
         // Server responded with error
         const status = error.response.status;
         const message = error.response.data?.message;
-        
+
         if (status === 401) {
           errorMsg = 'Email hoặc mật khẩu không đúng';
         } else if (status === 400) {
@@ -90,7 +90,7 @@ const Login = () => {
         // Request was made but no response received
         errorMsg = 'Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.';
       }
-      
+
       setErrorMessage(errorMsg);
     } finally {
       setIsLoading(false);
@@ -102,7 +102,14 @@ const Login = () => {
       <div className="max-w-md w-full">
         {/* Logo & Title */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-extrabold text-primary-600 mb-2">TechStore</h1>
+          <h1 className="text-4xl font-extrabold mb-2" style={{ textShadow: '0 1px 2px rgba(0, 0, 0, 0.1)' }}>
+            <span style={{ color: '#ef4444' }}>H</span>
+            <span style={{ color: '#22c55e' }}>D</span>
+            <span style={{ color: '#f97316' }}>Q</span>
+            <span style={{ color: '#06b6d4' }}>T</span>
+            <span style={{ color: '#1f2937' }}>Shop</span>
+            <span className="ml-3 text-primary-600">Admin</span>
+          </h1>
           <p className="text-lg text-gray-600">Admin Panel</p>
         </div>
 
@@ -146,11 +153,10 @@ const Login = () => {
                   id="email"
                   type="email"
                   {...register('email')}
-                  className={`pl-10 w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
-                    errors.email 
-                      ? 'border-red-500 focus:ring-red-500 focus:border-red-500' 
-                      : 'border-gray-300 focus:ring-primary-500 focus:border-transparent'
-                  }`}
+                  className={`pl-10 w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${errors.email
+                    ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                    : 'border-gray-300 focus:ring-primary-500 focus:border-transparent'
+                    }`}
                   placeholder="admin@example.com"
                   autoComplete="email"
                 />
@@ -176,11 +182,10 @@ const Login = () => {
                   id="password"
                   type="password"
                   {...register('password')}
-                  className={`pl-10 w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
-                    errors.password 
-                      ? 'border-red-500 focus:ring-red-500 focus:border-red-500' 
-                      : 'border-gray-300 focus:ring-primary-500 focus:border-transparent'
-                  }`}
+                  className={`pl-10 w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${errors.password
+                    ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                    : 'border-gray-300 focus:ring-primary-500 focus:border-transparent'
+                    }`}
                   placeholder="••••••••"
                   autoComplete="current-password"
                 />

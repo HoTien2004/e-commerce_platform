@@ -8,7 +8,7 @@ const Warranty = () => {
           <div className="mb-8">
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Chính sách bảo hành & đổi trả</h1>
             <p className="text-sm md:text-base text-gray-600 max-w-3xl">
-              TechStore cam kết mang đến cho bạn sản phẩm chính hãng, bảo hành rõ ràng và quy trình đổi trả minh bạch,
+              HDQTShop cam kết mang đến cho bạn sản phẩm chính hãng, bảo hành rõ ràng và quy trình đổi trả minh bạch,
               giúp bạn yên tâm sử dụng.
             </p>
           </div>
@@ -66,7 +66,7 @@ const Warranty = () => {
             </div>
             <ul className="text-sm md:text-base text-gray-600 space-y-1">
               <li>• Vui lòng sao lưu dữ liệu trước khi gửi máy bảo hành.</li>
-              <li>• TechStore không chịu trách nhiệm với dữ liệu cá nhân lưu trên thiết bị.</li>
+              <li>• HDQTShop không chịu trách nhiệm với dữ liệu cá nhân lưu trên thiết bị.</li>
               <li>• Mọi thắc mắc xin liên hệ Trung tâm hỗ trợ hoặc hotline 1900-xxxx.</li>
             </ul>
           </div>

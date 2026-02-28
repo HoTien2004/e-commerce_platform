@@ -69,16 +69,20 @@ const ProductDetail = () => {
     }
   }, [product?._id, isAuthenticated, user?.id]);
 
-  const fetchProduct = async () => {
+  const fetchProduct = async (options?: { silent?: boolean }) => {
     try {
-      setLoading(true);
+      if (!options?.silent) {
+        setLoading(true);
+      }
       const response = await productService.getProductBySlug(slug!);
       setProduct(response.data);
     } catch (error: any) {
       toast.error(error.message || 'Không tìm thấy sản phẩm');
       navigate('/products');
     } finally {
-      setLoading(false);
+      if (!options?.silent) {
+        setLoading(false);
+      }
     }
   };
 
@@ -253,9 +257,9 @@ const ProductDetail = () => {
           setSelectedRating(0);
         }
         setReviewComment('');
-        // Refresh reviews, product, and user ratings map
+        // Refresh reviews, product (silent), and user ratings map
         await fetchReviews();
-        await fetchProduct();
+        await fetchProduct({ silent: true });
         await buildUserRatingsMap();
       }
     } catch (error: any) {
@@ -343,7 +347,6 @@ const ProductDetail = () => {
           price: product.price,
           addedAt: new Date().toISOString(),
         });
-        toast.success('Đã thêm vào giỏ hàng');
         addModal(product, quantity);
         return;
       }
@@ -395,7 +398,6 @@ const ProductDetail = () => {
           price: relatedProduct.price,
           addedAt: new Date().toISOString(),
         });
-        toast.success('Đã thêm vào giỏ hàng');
         addModal(relatedProduct, 1);
         return;
       }
@@ -1035,7 +1037,7 @@ const ProductDetail = () => {
                 <div className="flex items-center gap-1">
                   {[1, 2, 3, 4, 5].map((star) => {
                     // If user has already rated, show their rating as read-only
-                    const displayRating = hasRated ? userRating : (hoveredRating || selectedRating);
+                    const displayRating = hasRated ? (userRating ?? 0) : (hoveredRating || selectedRating);
                     const isFilled = star <= (displayRating || 0);
                     return (
                       <button
@@ -1059,14 +1061,14 @@ const ProductDetail = () => {
                       </button>
                     );
                   })}
-                  {(hasRated ? userRating : selectedRating) > 0 && (
+                  {(hasRated ? (userRating ?? 0) : selectedRating) > 0 && (
                     <span className="ml-3 text-sm text-gray-600">
                       {hasRated && <span className="text-gray-500 italic">(Đã đánh giá) </span>}
-                      {(hasRated ? userRating : selectedRating) === 1 && 'Rất không hài lòng'}
-                      {(hasRated ? userRating : selectedRating) === 2 && 'Không hài lòng'}
-                      {(hasRated ? userRating : selectedRating) === 3 && 'Bình thường'}
-                      {(hasRated ? userRating : selectedRating) === 4 && 'Hài lòng'}
-                      {(hasRated ? userRating : selectedRating) === 5 && 'Rất hài lòng'}
+                      {(hasRated ? (userRating ?? 0) : selectedRating) === 1 && 'Rất không hài lòng'}
+                      {(hasRated ? (userRating ?? 0) : selectedRating) === 2 && 'Không hài lòng'}
+                      {(hasRated ? (userRating ?? 0) : selectedRating) === 3 && 'Bình thường'}
+                      {(hasRated ? (userRating ?? 0) : selectedRating) === 4 && 'Hài lòng'}
+                      {(hasRated ? (userRating ?? 0) : selectedRating) === 5 && 'Rất hài lòng'}
                     </span>
                   )}
                 </div>
@@ -1089,8 +1091,8 @@ const ProductDetail = () => {
                   onChange={(e) => setReviewComment(e.target.value)}
                   disabled={!hasRated && selectedRating === 0}
                   className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none ${!hasRated && selectedRating === 0
-                      ? 'bg-gray-100 cursor-not-allowed opacity-60'
-                      : ''
+                    ? 'bg-gray-100 cursor-not-allowed opacity-60'
+                    : ''
                     }`}
                   placeholder={
                     !hasRated && selectedRating === 0

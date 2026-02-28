@@ -307,17 +307,6 @@ const ProductList = () => {
         setProducts(paginatedProducts);
         setTotalPages(totalPages);
         setTotalProducts(filteredProducts.length);
-
-        // Update URL params
-        const newParams = new URLSearchParams();
-        if (search) newParams.set('search', search);
-        if (selectedCategory) newParams.set('category', selectedCategory);
-        if (selectedBrand) newParams.set('brand', selectedBrand);
-        if (sortBy) newParams.set('sort', sortBy);
-        if (minPrice) newParams.set('minPrice', minPrice);
-        if (maxPrice) newParams.set('maxPrice', maxPrice);
-        if (currentPage > 1) newParams.set('page', currentPage.toString());
-        setSearchParams(newParams);
       } else {
         // Normal category filtering
         const params: any = {
@@ -340,20 +329,9 @@ const ProductList = () => {
         setProducts(response.data.products);
         setTotalPages(response.data.pagination.totalPages);
         setTotalProducts(response.data.pagination.totalItems);
-
-        // Update URL params
-        const newParams = new URLSearchParams();
-        if (search) newParams.set('search', search);
-        if (selectedCategory) newParams.set('category', selectedCategory);
-        if (selectedBrand) newParams.set('brand', selectedBrand);
-        if (sortBy) newParams.set('sort', sortBy);
-        if (minPrice) newParams.set('minPrice', minPrice);
-        if (maxPrice) newParams.set('maxPrice', maxPrice);
-        if (currentPage > 1) newParams.set('page', currentPage.toString());
-        setSearchParams(newParams);
       }
 
-      // Update URL params
+      // Update URL params (replace current history entry to avoid back-button spam)
       const newParams = new URLSearchParams();
       if (search) newParams.set('search', search);
       if (selectedCategory) newParams.set('category', selectedCategory);
@@ -362,7 +340,7 @@ const ProductList = () => {
       if (minPrice) newParams.set('minPrice', minPrice);
       if (maxPrice) newParams.set('maxPrice', maxPrice);
       if (currentPage > 1) newParams.set('page', currentPage.toString());
-      setSearchParams(newParams);
+      setSearchParams(newParams, { replace: true });
     } catch (error: any) {
       toast.error(error.message || 'Lỗi khi tải danh sách sản phẩm');
     } finally {
@@ -388,15 +366,22 @@ const ProductList = () => {
       // If not authenticated, use local cart only
       if (!isAuthenticated) {
         addItem({
+          _id: product._id,
           productId: {
             _id: product._id,
             name: product.name,
-            images: product.images || [],
+            slug: product.slug,
+            price: product.price,
+            images: (product.images || []).map(img => ({
+              url: img.url,
+              isPrimary: img.isPrimary || false,
+            })),
+            stock: product.stock,
           },
           quantity: 1,
           price: product.price,
+          addedAt: new Date().toISOString(),
         });
-        toast.success('Đã thêm vào giỏ hàng');
         addModal(product, 1);
         return;
       }

@@ -4,6 +4,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { authService } from '../../services/authService';
 import { useAuthStore } from '../../store/authStore';
+import { useCartStore } from '../../store/cartStore';
+import { cartService } from '../../services/cartService';
 import toast from 'react-hot-toast';
 import { FiEye, FiEyeOff } from 'react-icons/fi';
 import Modal from './Modal';
@@ -52,6 +54,44 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: AuthModalProps) =
   const [error, setError] = useState<string>('');
   const { setAuth } = useAuthStore();
 
+  // Merge local (guest) cart into server cart after successful login/register
+  // and always sync latest server cart to client (even if guest cart is empty)
+  const mergeLocalCartToServer = async () => {
+    const { items, setCart } = useCartStore.getState();
+
+    try {
+      const localItems = Array.isArray(items) ? [...items] : [];
+
+      // Nếu có giỏ local (guest) thì đẩy lên server
+      if (localItems.length > 0) {
+        for (const item of localItems) {
+          const productId =
+            typeof (item as any).productId === 'string'
+              ? (item as any).productId
+              : (item as any).productId?._id;
+
+          if (!productId) continue;
+
+          const quantity = (item as any).quantity ?? 1;
+
+          await cartService.addToCart({
+            productId,
+            quantity,
+          });
+        }
+      }
+
+      // Luôn lấy giỏ hàng mới nhất từ server sau khi (có thể) merge
+      const cartResponse = await cartService.getCart();
+      if (cartResponse.success) {
+        setCart(cartResponse.data);
+      }
+    } catch (error) {
+      console.error('Error merging local cart to server:', error);
+      // Không chặn đăng nhập nếu sync giỏ hàng lỗi
+    }
+  };
+
   const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   });
@@ -72,12 +112,16 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: AuthModalProps) =
           response.data.accessToken,
           response.data.refreshToken
         );
+
+        // Sau khi đăng nhập thành công, đồng bộ giỏ hàng guest lên server (không chặn UI)
+        mergeLocalCartToServer().catch(() => {
+          // lỗi đã được log trong mergeLocalCartToServer
+        });
+
         toast.success('Đăng nhập thành công!');
-        setTimeout(() => {
-          onClose();
-          loginForm.reset();
-          setError('');
-        }, 100);
+        onClose();
+        loginForm.reset();
+        setError('');
       } else {
         const errorMessage = response.message || 'Đăng nhập thất bại';
         const lowerMessage = errorMessage.toLowerCase();
@@ -159,14 +203,18 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: AuthModalProps) =
           response.data.accessToken,
           response.data.refreshToken
         );
+
+        // Sau khi đăng ký + đăng nhập thành công, đồng bộ giỏ hàng guest lên server (không chặn UI)
+        mergeLocalCartToServer().catch(() => {
+          // lỗi đã được log trong mergeLocalCartToServer
+        });
+
         toast.success('Đăng ký thành công!');
-        setTimeout(() => {
-          onClose();
-          setMode('login');
-          setOtp('');
-          setError('');
-          registerForm.reset();
-        }, 100);
+        onClose();
+        setMode('login');
+        setOtp('');
+        setError('');
+        registerForm.reset();
       } else {
         const errorMessage = response.message || 'Xác thực OTP thất bại';
         setError(errorMessage);

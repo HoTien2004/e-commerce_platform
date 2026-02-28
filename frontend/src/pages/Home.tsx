@@ -98,7 +98,6 @@ const Home = () => {
           price: product.price,
           addedAt: new Date().toISOString(),
         });
-        toast.success('Đã thêm vào giỏ hàng');
         addModal(product, 1);
         return;
       }
@@ -295,10 +294,10 @@ const Home = () => {
                 <img
                   src={
                     currentSlide === 0
-                      ? 'https://res.cloudinary.com/dxf5tsrif/image/upload/v1770024187/snapedit_1770024152700_asaojk.jpg'
+                      ? 'https://res.cloudinary.com/dxf5tsrif/image/upload/v1772269245/slider1_m2dxzw.png'
                       : currentSlide === 1
-                        ? 'https://res.cloudinary.com/dxf5tsrif/image/upload/v1770024547/snapedit_1770024534453_tarmab.jpg'
-                        : 'https://res.cloudinary.com/dxf5tsrif/image/upload/v1770024548/snapedit_1770024520650_zciqxo.jpg'
+                        ? 'https://res.cloudinary.com/dxf5tsrif/image/upload/v1772273223/slider2_u4tcoj.png'
+                        : 'https://res.cloudinary.com/dxf5tsrif/image/upload/v1772273222/slider3_nzkds5.png'
                   }
                   alt=""
                   className="absolute inset-0 w-full h-full object-cover"
@@ -322,34 +321,34 @@ const Home = () => {
             {/* Right vertical banners */}
             <div className="hidden lg:flex flex-col gap-3 w-64 h-[450px]">
               <Link
-                to="/products?category=Laptop gaming"
+                to="/products?category=Chuột"
                 className="relative h-[calc(33.333%-0.5rem)] rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow"
               >
                 <img
-                  src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1770021053/macbook-giao-xa-2026_aej6mb.webp"
-                  alt="Laptop"
+                  src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1772272169/gearvn-chuot-gaming-sub-banner-t1-26_p1ej4b.png"
+                  alt="Chuột"
                   className="absolute inset-0 w-full h-full object-cover"
                 />
               </Link>
 
               <Link
-                to="/products?category=PC Gaming"
+                to="/products?category=Phụ kiện"
                 className="relative h-[calc(33.333%-0.5rem)] rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow"
               >
                 <img
-                  src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1769505949/ttgshop-banner-under-slider-top-27122025-3_nkswqk.png"
-                  alt="PC"
+                  src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1772272258/gearvn-gaming-gear-sub-banner-t1-26_bmvrhm.png"
+                  alt="Phụ kiện"
                   className="absolute inset-0 w-full h-full object-cover"
                 />
               </Link>
 
               <Link
-                to="/products?category="
+                to="/products?category=Màn hình"
                 className="relative h-[calc(33.333%-0.5rem)] rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow"
               >
                 <img
-                  src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1770021339/ttgshop-banner-under-slider-top-27122025-2_nx7tlu.png"
-                  alt="Bàn phím"
+                  src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1772272258/gearvn-man-hinh-sub-banner-t1-26_edteko.png"
+                  alt="Màn hình"
                   className="absolute inset-0 w-full h-full object-cover"
                 />
               </Link>
@@ -359,41 +358,41 @@ const Home = () => {
           {/* Bottom horizontal banners */}
           <div className="hidden lg:grid grid-cols-4 gap-3">
             <Link
-              to=""
+              to="/products?category=PC Gaming"
               className="relative h-[139px] rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow group"
             >
               <img
-                src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1770023253/f211d09ae538f0998ee3f33314aaa8b7_n4uzoe.png"
+                src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1772271943/gearvn-build-pc-sub-banner-t1-26_p3wpya.png"
                 alt=""
                 className="absolute inset-0 w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
               />
             </Link>
             <Link
-              to=""
+              to="/products?category=Bàn phím"
               className="relative h-[139px] rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow group"
             >
               <img
-                src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1770024330/huawei-mate-x7-home-0225_iyzqrf.webp"
+                src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1772272049/gearvn-ban-phim-sub-banner-t1-26_k9m5ht.png"
                 alt=""
                 className="absolute inset-0 w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
               />
             </Link>
             <Link
-              to=""
+              to="/products?category=Laptop gaming"
               className="relative h-[139px] rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow group"
             >
               <img
-                src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1770023571/RightBanner_Apple-Watch_01.2026_lq1cyc.webp"
+                src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1772272050/gearvn-laptop-van-phong-sub-banner-t1-26_vqxrpo.png"
                 alt=""
                 className="absolute inset-0 w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
               />
             </Link>
             <Link
-              to=""
+              to="/products?category=PC Workstation"
               className="relative h-[139px] rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow group"
             >
               <img
-                src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1770023571/galaxy-a17-5g-0126-RIGHT_uqddzu.webp"
+                src="https://res.cloudinary.com/dxf5tsrif/image/upload/v1772272051/gearvn-pc-i5-sub-banner-t1-26_vpk4hb.png"
                 alt=""
                 className="absolute inset-0 w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
               />

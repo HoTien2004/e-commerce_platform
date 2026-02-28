@@ -27,13 +27,20 @@ import FAQ from './pages/FAQ';
 import { useAuthStore } from './store/authStore';
 import { useModalStore } from './store/modalStore';
 
-// Scroll to top on route change
+// Scroll to top on route change (and disable browser scroll restoration)
 const ScrollToTop = () => {
-  const { pathname } = useLocation();
+  const location = useLocation();
+
+  // Disable browser's automatic scroll restoration so our logic always applies
+  useEffect(() => {
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
+  }, []);
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
-  }, [pathname]);
+  }, [location]);
 
   return null;
 };

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { FiTrash2, FiPlus, FiMinus, FiShoppingCart, FiArrowRight } from 'react-icons/fi';
 import { useCartStore } from '../store/cartStore';
 import { useAuthStore } from '../store/authStore';
+import { useModalStore } from '../store/modalStore';
 import { cartService } from '../services/cartService';
 import toast from 'react-hot-toast';
 import type { CartItem } from '../types/cart';
@@ -28,6 +29,7 @@ const Cart = () => {
   const navigate = useNavigate();
   const { items, total, itemCount, setCart, updateItem, removeItem, clearCart, setLoading } = useCartStore();
   const { isAuthenticated } = useAuthStore();
+  const { openAuthModal } = useModalStore();
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
@@ -267,12 +269,16 @@ const Cart = () => {
 
   // Handle checkout with selected items
   const handleCheckout = () => {
+    // Require at least one selected item
     if (selectedItems.size === 0) {
-      toast.error('Vui lòng chọn ít nhất một sản phẩm để thanh toán');
       return;
     }
 
-    // Get productIds of selected items
+    if (!isAuthenticated) {
+      openAuthModal('login');
+      return;
+    }
+
     const selectedProductIds = items
       .filter((item) => selectedItems.has(item._id))
       .map((item) => {
@@ -552,10 +558,10 @@ const Cart = () => {
 
               <button
                 onClick={handleCheckout}
-                disabled={selectedItems.size === 0 && items.length > 0}
+                disabled={selectedItems.size === 0}
                 className="w-full bg-primary-600 text-white py-3 rounded-lg hover:bg-primary-700 transition-colors font-semibold flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <span>Tiến hành thanh toán</span>
+                <span>{isAuthenticated ? 'Tiến hành thanh toán' : 'Vui lòng đăng nhập để thanh toán'}</span>
                 <FiArrowRight className="w-5 h-5" />
               </button>
 

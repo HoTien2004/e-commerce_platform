@@ -36,12 +36,12 @@ const CartSuccessModalStack = () => {
     timeoutRefs.current.forEach((timeout) => clearTimeout(timeout));
     timeoutRefs.current.clear();
 
-    // Set new timeouts for each modal
+    // Set new timeouts for each modal (auto-hide after ~3s)
     modals.forEach((modal) => {
       const timer = setTimeout(() => {
         removeModal(modal.id);
         timeoutRefs.current.delete(modal.id);
-      }, 1000);
+      }, 2000);
       timeoutRefs.current.set(modal.id, timer);
     });
 

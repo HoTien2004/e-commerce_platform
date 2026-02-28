@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { useCartStore } from './cartStore';
 
 export interface UserAddress {
     _id: string;
@@ -66,6 +67,13 @@ export const useAuthStore = create<AuthState>()(
             logout: () => {
                 localStorage.removeItem('accessToken');
                 localStorage.removeItem('refreshToken');
+                // Clear cart when user logs out
+                try {
+                    const { clearCart } = useCartStore.getState();
+                    clearCart();
+                } catch {
+                    // Ignore cart clearing errors
+                }
                 set({
                     user: null,
                     accessToken: null,

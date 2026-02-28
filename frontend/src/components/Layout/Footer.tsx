@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { scrollToTop } from '../../utils/scrollToTop';
 import Logo from '../Logo';
+import toast from 'react-hot-toast';
 import {
   FiFacebook,
   FiTwitter,
@@ -24,7 +25,13 @@ const Footer = () => {
               Đăng ký email để không bỏ lỡ khuyến mãi và sản phẩm mới.
             </p>
           </div>
-          <form className="w-full lg:w-auto lg:min-w-[420px] flex flex-col sm:flex-row sm:flex-nowrap gap-3">
+          <form
+            className="w-full lg:w-auto lg:min-w-[420px] flex flex-col sm:flex-row sm:flex-nowrap gap-3"
+            onSubmit={(e) => {
+              e.preventDefault();
+              toast('Tính năng đang phát triển', { icon: '🔧' });
+            }}
+          >
             <input
               type="email"
               placeholder="Nhập email của bạn"
@@ -171,18 +178,42 @@ const Footer = () => {
                   Hỗ trợ 8:30 - 21:30 mỗi ngày
                 </p>
                 <div className="flex items-center space-x-3 mt-3">
-                  <a href="#" className="text-secondary-700 hover:text-primary-600 transition-colors" aria-label="Facebook">
+                  <button
+                    type="button"
+                    onClick={() => toast('Tính năng đang phát triển', { icon: '🔧' })}
+                    className="text-secondary-700 hover:text-primary-600 transition-colors"
+                    aria-label="Facebook"
+                    title="Tính năng đang phát triển"
+                  >
                     <FiFacebook className="w-6 h-6" />
-                  </a>
-                  <a href="#" className="text-secondary-700 hover:text-primary-600 transition-colors" aria-label="Twitter">
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => toast('Tính năng đang phát triển', { icon: '🔧' })}
+                    className="text-secondary-700 hover:text-primary-600 transition-colors"
+                    aria-label="Twitter"
+                    title="Tính năng đang phát triển"
+                  >
                     <FiTwitter className="w-6 h-6" />
-                  </a>
-                  <a href="#" className="text-secondary-700 hover:text-primary-600 transition-colors" aria-label="Instagram">
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => toast('Tính năng đang phát triển', { icon: '🔧' })}
+                    className="text-secondary-700 hover:text-primary-600 transition-colors"
+                    aria-label="Instagram"
+                    title="Tính năng đang phát triển"
+                  >
                     <FiInstagram className="w-6 h-6" />
-                  </a>
-                  <a href="#" className="text-secondary-700 hover:text-primary-600 transition-colors" aria-label="Email">
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => toast('Tính năng đang phát triển', { icon: '🔧' })}
+                    className="text-secondary-700 hover:text-primary-600 transition-colors"
+                    aria-label="Email"
+                    title="Tính năng đang phát triển"
+                  >
                     <FiMail className="w-6 h-6" />
-                  </a>
+                  </button>
                 </div>
               </div>
             </div>

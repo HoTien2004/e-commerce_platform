@@ -96,9 +96,14 @@ const News = () => {
 
         {/* Load More */}
         <div className="mt-8 text-center">
-          <button className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-semibold">
+          <button
+            type="button"
+            disabled
+            className="px-6 py-3 bg-gray-300 text-gray-500 rounded-lg cursor-not-allowed font-semibold"
+          >
             Xem thêm tin tức
           </button>
+          <p className="mt-2 text-sm text-amber-600">Tính năng đang phát triển</p>
         </div>
       </div>
     </div>

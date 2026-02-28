@@ -17,6 +17,13 @@ import AddressDropdown from '../components/AddressDropdown';
 import AddressAutocomplete from '../components/AddressAutocomplete';
 import toast from 'react-hot-toast';
 
+// Logo URLs cho phương thức thanh toán (để trống nếu chưa có, sẽ hiện text thay thế)
+const PAYMENT_LOGOS = {
+  cod: 'https://res.cloudinary.com/dxf5tsrif/image/upload/v1772275849/chinh-sach-thanh-toan-667_z8opcf.png',
+  vnpay: 'https://res.cloudinary.com/dxf5tsrif/image/upload/v1772275849/vnpay-logo-vinadesign-25-12-57-55_b92ujy.jpg',
+  momo: 'https://res.cloudinary.com/dxf5tsrif/image/upload/v1772275848/transparent-background-logo-138ebf0ffca865ec0f1a7d9c1e4a9f3c_ftrfue.png',
+};
+
 // Helper function to validate image URL
 const isValidImageUrl = (url: string | undefined): boolean => {
   if (!url) return false;
@@ -73,10 +80,12 @@ const Checkout = () => {
   const [isAddingNewAddress, setIsAddingNewAddress] = useState(false);
   const [newAddress, setNewAddress] = useState('');
   const [isSavingNewAddress, setIsSavingNewAddress] = useState(false);
+  const [logoErrors, setLogoErrors] = useState<Set<string>>(new Set());
 
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
     setValue,
   } = useForm<CheckoutFormData>({
@@ -89,6 +98,8 @@ const Checkout = () => {
       paymentMethod: 'cod',
     },
   });
+
+  const selectedPayment = watch('paymentMethod');
 
   useEffect(() => {
     // Only redirect if not submitting (to avoid redirecting after successful order)
@@ -209,6 +220,11 @@ const Checkout = () => {
       return;
     }
 
+    if (data.paymentMethod === 'momo') {
+      toast.error('Thanh toán MoMo đang phát triển. Vui lòng chọn phương thức khác.');
+      return;
+    }
+
     try {
       setIsSubmitting(true);
 
@@ -247,13 +263,13 @@ const Checkout = () => {
 
             toast.error(
               paymentResponse.data.message ||
-                'Không thể tạo liên kết thanh toán VNPay. Vui lòng thử lại hoặc chọn phương thức khác.'
+              'Không thể tạo liên kết thanh toán VNPay. Vui lòng thử lại hoặc chọn phương thức khác.'
             );
           } catch (error: any) {
             console.error('Error creating VNPay payment:', error);
             toast.error(
               error.response?.data?.message ||
-                'Không thể tạo thanh toán VNPay. Vui lòng thử lại hoặc chọn phương thức khác.'
+              'Không thể tạo thanh toán VNPay. Vui lòng thử lại hoặc chọn phương thức khác.'
             );
           } finally {
             setIsSubmitting(false);
@@ -550,7 +566,8 @@ const Checkout = () => {
               </div>
 
               <div className="space-y-3">
-                <label className="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-primary-300 transition-colors">
+                <label className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition-colors ${selectedPayment === 'cod' ? 'border-primary-500 bg-primary-50/50' : 'border-gray-200 hover:border-primary-300'
+                  }`}>
                   <input
                     type="radio"
                     {...register('paymentMethod')}
@@ -561,9 +578,22 @@ const Checkout = () => {
                     <p className="font-semibold text-gray-900">Thanh toán khi nhận hàng (COD)</p>
                     <p className="text-sm text-gray-500">Thanh toán bằng tiền mặt khi nhận hàng</p>
                   </div>
+                  <div className="flex-shrink-0 h-20 w-28 flex items-center justify-center bg-gray-50 rounded-lg border border-gray-200 overflow-hidden p-2">
+                    {PAYMENT_LOGOS.cod && !logoErrors.has('cod') ? (
+                      <img
+                        src={PAYMENT_LOGOS.cod}
+                        alt="COD"
+                        className="h-full w-auto object-contain"
+                        onError={() => setLogoErrors((p) => new Set(p).add('cod'))}
+                      />
+                    ) : (
+                      <span className="text-sm font-bold text-gray-600">COD</span>
+                    )}
+                  </div>
                 </label>
 
-                <label className="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-primary-300 transition-colors">
+                <label className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition-colors ${selectedPayment === 'vnpay' ? 'border-primary-500 bg-primary-50/50' : 'border-gray-200 hover:border-primary-300'
+                  }`}>
                   <input
                     type="radio"
                     {...register('paymentMethod')}
@@ -574,18 +604,46 @@ const Checkout = () => {
                     <p className="font-semibold text-gray-900">Thanh toán VNPay</p>
                     <p className="text-sm text-gray-500">Thanh toán qua cổng VNPay</p>
                   </div>
+                  <div className="flex-shrink-0 h-20 w-28 flex items-center justify-center bg-white rounded-lg border border-gray-200 overflow-hidden p-2">
+                    {PAYMENT_LOGOS.vnpay && !logoErrors.has('vnpay') ? (
+                      <img
+                        src={PAYMENT_LOGOS.vnpay}
+                        alt="VNPay"
+                        className="h-full w-auto object-contain"
+                        onError={() => setLogoErrors((p) => new Set(p).add('vnpay'))}
+                      />
+                    ) : (
+                      <span className="text-sm font-bold text-blue-600">VNPay</span>
+                    )}
+                  </div>
                 </label>
 
-                <label className="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-primary-300 transition-colors">
+                <label className="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg cursor-not-allowed opacity-70 bg-gray-50">
                   <input
                     type="radio"
                     {...register('paymentMethod')}
                     value="momo"
+                    disabled
                     className="w-5 h-5 text-primary-600"
                   />
                   <div className="flex-1">
                     <p className="font-semibold text-gray-900">Ví MoMo</p>
                     <p className="text-sm text-gray-500">Thanh toán qua ứng dụng MoMo</p>
+                    <span className="inline-block mt-1 text-xs font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded">
+                      Tính năng đang phát triển
+                    </span>
+                  </div>
+                  <div className="flex-shrink-0 h-20 w-28 flex items-center justify-center bg-white rounded-lg border border-gray-200 overflow-hidden p-2">
+                    {PAYMENT_LOGOS.momo && !logoErrors.has('momo') ? (
+                      <img
+                        src={PAYMENT_LOGOS.momo}
+                        alt="MoMo"
+                        className="h-full w-auto object-contain"
+                        onError={() => setLogoErrors((p) => new Set(p).add('momo'))}
+                      />
+                    ) : (
+                      <span className="text-sm font-bold text-pink-600">MoMo</span>
+                    )}
                   </div>
                 </label>
               </div>

@@ -76,6 +76,7 @@ const OrderDetail = () => {
   const [order, setOrder] = useState<Order | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -111,14 +112,11 @@ const OrderDetail = () => {
   const handleCancelOrder = async () => {
     if (!order || !order._id) return;
 
-    if (!confirm('Bạn có chắc chắn muốn hủy đơn hàng này?')) {
-      return;
-    }
-
     try {
       setIsCancelling(true);
       const response = await orderService.cancelOrder(order._id);
       if (response.success) {
+        setShowCancelConfirm(false);
         toast.success('Hủy đơn hàng thành công!');
         loadOrder(); // Reload to get updated status
       }
@@ -401,13 +399,34 @@ const OrderDetail = () => {
               </div>
 
               {order.orderStatus === 'pending' && (
-                <button
-                  onClick={handleCancelOrder}
-                  disabled={isCancelling}
-                  className="w-full mt-4 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isCancelling ? 'Đang xử lý...' : 'Hủy đơn hàng'}
-                </button>
+                <div className="mt-4">
+                  {showCancelConfirm ? (
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-sm text-gray-600">Bạn có chắc chắn muốn hủy đơn hàng này?</span>
+                      <button
+                        onClick={handleCancelOrder}
+                        disabled={isCancelling}
+                        className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                      >
+                        {isCancelling ? 'Đang xử lý...' : 'Xác nhận hủy'}
+                      </button>
+                      <button
+                        onClick={() => setShowCancelConfirm(false)}
+                        disabled={isCancelling}
+                        className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium text-sm"
+                      >
+                        Hủy
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setShowCancelConfirm(true)}
+                      className="w-full bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition-colors font-medium"
+                    >
+                      Hủy đơn hàng
+                    </button>
+                  )}
+                </div>
               )}
 
               <Link

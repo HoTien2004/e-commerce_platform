@@ -184,6 +184,15 @@ const createOrder = async (req: Request, res: Response): Promise<Response> => {
             });
         }
 
+        // COD: tăng lượt đã bán ngay khi tạo đơn (đã thanh toán khi giao hàng)
+        if (paymentMethod === 'cod' && orderItems.length) {
+            for (const item of orderItems) {
+                await productModel.findByIdAndUpdate(item.productId, {
+                    $inc: { soldCount: item.quantity }
+                });
+            }
+        }
+
         // Increment promo code usage if applied
         if (appliedPromoCode) {
             await promoCodeModel.findOneAndUpdate(
@@ -265,9 +274,10 @@ const getOrders = async (req: Request, res: Response): Promise<Response> => {
         // Build query
         const query: any = {};
 
-        // If not admin, only show user's own orders
+        // If not admin, only show user's own orders và không hiển thị đơn thanh toán thất bại
         if (!isAdmin) {
             query.userId = userId;
+            query.paymentStatus = { $ne: "failed" };
         }
 
         // Filter by status
@@ -482,13 +492,7 @@ const updateOrderStatus = async (req: Request, res: Response): Promise<Response>
             if (order.paymentMethod === 'cod' && order.paymentStatus !== 'paid') {
                 order.paymentStatus = 'paid';
             }
-
-            // Increment product soldCount
-            for (const item of order.items) {
-                await productModel.findByIdAndUpdate(item.productId, {
-                    $inc: { soldCount: item.quantity }
-                });
-            }
+            // soldCount: COD đã cộng lúc tạo đơn, VNPay đã cộng lúc thanh toán thành công — không cộng lại khi delivered
         }
 
         await order.save();

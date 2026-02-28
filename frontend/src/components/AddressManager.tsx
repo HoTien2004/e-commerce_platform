@@ -25,6 +25,7 @@ const AddressManager = ({
   const [newAddress, setNewAddress] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingAddress, setEditingAddress] = useState('');
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   // Sort addresses: default address first
   const sortedAddresses = useMemo(() => {
@@ -74,12 +75,9 @@ const AddressManager = ({
       return;
     }
 
-    if (!confirm('Bạn có chắc chắn muốn xóa địa chỉ này?')) {
-      return;
-    }
-
     try {
       await onDeleteAddress(id);
+      setConfirmDeleteId(null);
       toast.success('Xóa địa chỉ thành công!');
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Xóa địa chỉ thất bại');
@@ -225,15 +223,38 @@ const AddressManager = ({
                       <FiEdit2 className="w-4 h-4" />
                     </button>
                     {!addr.isDefault && (
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteAddress(addr._id!)}
-                        disabled={isLoading}
-                        className="p-1.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                        title="Xóa"
-                      >
-                        <FiTrash2 className="w-4 h-4" />
-                      </button>
+                      <span className="flex items-center gap-1">
+                        {confirmDeleteId === addr._id ? (
+                          <>
+                            <span className="text-xs text-gray-600 mr-1">Xóa?</span>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteAddress(addr._id!)}
+                              disabled={isLoading}
+                              className="text-xs py-1 px-2 text-white bg-red-600 hover:bg-red-700 rounded"
+                            >
+                              Xác nhận
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setConfirmDeleteId(null)}
+                              className="text-xs py-1 px-2 text-gray-600 hover:bg-gray-100 rounded"
+                            >
+                              Hủy
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setConfirmDeleteId(addr._id!)}
+                            disabled={isLoading}
+                            className="p-1.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                            title="Xóa"
+                          >
+                            <FiTrash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </span>
                     )}
                   </div>
                 </div>

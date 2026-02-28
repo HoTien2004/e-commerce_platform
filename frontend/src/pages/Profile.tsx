@@ -50,6 +50,7 @@ const Profile = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [addresses, setAddresses] = useState<UserAddress[]>([]);
   const [isAddressLoading, setIsAddressLoading] = useState(false);
+  const [confirmDeleteAvatar, setConfirmDeleteAvatar] = useState(false);
 
   const profileForm = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
@@ -223,11 +224,10 @@ const Profile = () => {
   };
 
   const handleDeleteAvatar = async () => {
-    if (!confirm('Bạn có chắc chắn muốn xóa avatar?')) return;
-
     try {
       const response = await profileService.deleteAvatar();
       if (response.success) {
+        setConfirmDeleteAvatar(false);
         await loadProfile();
         toast.success('Xóa avatar thành công!');
       }
@@ -296,7 +296,7 @@ const Profile = () => {
                     />
                   </label>
                 </div>
-                <div className="flex gap-3">
+                <div className="flex flex-wrap items-center gap-3">
                   <label
                     htmlFor="avatar-upload"
                     className="btn-secondary cursor-pointer"
@@ -305,13 +305,34 @@ const Profile = () => {
                     {isUploadingAvatar ? 'Đang tải...' : 'Thay đổi avatar'}
                   </label>
                   {user?.avatar && (
-                    <button
-                      onClick={handleDeleteAvatar}
-                      className="btn-ghost text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      <FiTrash2 className="w-4 h-4 mr-2" />
-                      Xóa avatar
-                    </button>
+                    confirmDeleteAvatar ? (
+                      <span className="flex items-center gap-2">
+                        <span className="text-sm text-gray-600">Xóa avatar?</span>
+                        <button
+                          type="button"
+                          onClick={handleDeleteAvatar}
+                          className="text-sm py-1.5 px-3 text-white bg-red-600 hover:bg-red-700 rounded-lg"
+                        >
+                          Xác nhận
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setConfirmDeleteAvatar(false)}
+                          className="text-sm py-1.5 px-3 text-gray-600 hover:bg-gray-100 rounded-lg"
+                        >
+                          Hủy
+                        </button>
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setConfirmDeleteAvatar(true)}
+                        className="btn-ghost text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <FiTrash2 className="w-4 h-4 mr-2" />
+                        Xóa avatar
+                      </button>
+                    )
                   )}
                 </div>
               </div>

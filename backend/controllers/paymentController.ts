@@ -1,7 +1,8 @@
 import type { Request, Response } from "express";
 import orderModel from "../models/orderModel";
-import { buildVnpParams, buildSignedVnpUrl, verifyVnpReturn } from "../services/vnpayService";
 import userModel from "../models/userModel";
+import productModel from "../models/productModel";
+import { buildVnpParams, buildSignedVnpUrl, verifyVnpReturn } from "../services/vnpayService";
 
 // POST /api/payments/vnpay/create
 export const createVnpayPayment = async (req: Request, res: Response): Promise<Response> => {
@@ -134,6 +135,14 @@ export const confirmVnpayPayment = async (req: Request, res: Response): Promise<
                 order.paymentProvider = "vnpay";
                 order.paymentTransactionId = transactionNo || null;
                 await order.save();
+                // Thanh toán thành công: cập nhật tồn kho (đã trừ lúc tạo đơn) và cộng lượt đã bán
+                if (order.items?.length) {
+                    for (const item of order.items) {
+                        await productModel.findByIdAndUpdate(item.productId, {
+                            $inc: { soldCount: item.quantity },
+                        });
+                    }
+                }
             }
             paymentStatus = "paid";
             message = "Payment successful";
@@ -143,10 +152,33 @@ export const confirmVnpayPayment = async (req: Request, res: Response): Promise<
                 order.paymentProvider = "vnpay";
                 order.paymentTransactionId = transactionNo || null;
                 await order.save();
+                // Không khôi phục giỏ hàng và không trả hàng vào kho khi thất bại (tránh trùng/nhân đôi giỏ).
             }
             paymentStatus = "failed";
             message = "Payment failed or cancelled";
         }
+
+        // Populate order details for result page (customer info + product items with image)
+        const populatedOrder = await orderModel
+            .findById(order._id)
+            .populate("items.productId", "name images");
+
+        const orderDetails = populatedOrder
+            ? {
+                  customerInfo: (populatedOrder as any).customerInfo,
+                  shippingAddress: (populatedOrder as any).shippingAddress,
+                  items: (populatedOrder as any).items?.map((item: any) => ({
+                      name: item.name,
+                      quantity: item.quantity,
+                      price: item.price,
+                      image: item.productId?.images?.[0]?.url ?? null,
+                  })),
+                  subtotal: (populatedOrder as any).subtotal,
+                  shippingFee: (populatedOrder as any).shippingFee,
+                  discount: (populatedOrder as any).discount,
+                  total: (populatedOrder as any).total,
+              }
+            : null;
 
         return res.status(200).json({
             success: paymentStatus === "paid",
@@ -158,6 +190,7 @@ export const confirmVnpayPayment = async (req: Request, res: Response): Promise<
                 paymentProvider: order.paymentProvider,
                 paymentTransactionId: order.paymentTransactionId,
                 responseCode,
+                orderDetails,
             },
         });
     } catch (error: any) {

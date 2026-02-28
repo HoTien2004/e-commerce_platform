@@ -43,6 +43,7 @@ const Orders = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [selectedStatus, setSelectedStatus] = useState<string>('all');
+    const [confirmCancelOrderId, setConfirmCancelOrderId] = useState<string | null>(null);
     const itemsPerPage = 10;
 
     useEffect(() => {
@@ -83,13 +84,10 @@ const Orders = () => {
     };
 
     const handleCancelOrder = async (orderId: string) => {
-        if (!confirm('Bạn có chắc chắn muốn hủy đơn hàng này?')) {
-            return;
-        }
-
         try {
             const response = await orderService.cancelOrder(orderId);
             if (response.success) {
+                setConfirmCancelOrderId(null);
                 toast.success('Hủy đơn hàng thành công!');
                 loadOrders();
             }
@@ -254,7 +252,7 @@ const Orders = () => {
                                         <div className="text-sm text-gray-600">
                                             <p>Địa chỉ giao hàng: {order.shippingAddress}</p>
                                         </div>
-                                        <div className="flex gap-2">
+                                        <div className="flex flex-wrap items-center gap-2">
                                             <Link
                                                 to={`/orders/${order.orderNumber}`}
                                                 onClick={() => scrollToTop()}
@@ -264,12 +262,30 @@ const Orders = () => {
                                                 Xem chi tiết
                                             </Link>
                                             {order.orderStatus === 'pending' && (
-                                                <button
-                                                    onClick={() => handleCancelOrder(order._id)}
-                                                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
-                                                >
-                                                    Hủy đơn
-                                                </button>
+                                                confirmCancelOrderId === order._id ? (
+                                                    <span className="flex items-center gap-2">
+                                                        <span className="text-xs text-gray-600">Hủy đơn?</span>
+                                                        <button
+                                                            onClick={() => handleCancelOrder(order._id)}
+                                                            className="px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm font-medium"
+                                                        >
+                                                            Xác nhận
+                                                        </button>
+                                                        <button
+                                                            onClick={() => setConfirmCancelOrderId(null)}
+                                                            className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm"
+                                                        >
+                                                            Hủy
+                                                        </button>
+                                                    </span>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => setConfirmCancelOrderId(order._id)}
+                                                        className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+                                                    >
+                                                        Hủy đơn
+                                                    </button>
+                                                )
                                             )}
                                         </div>
                                     </div>

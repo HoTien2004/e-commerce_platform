@@ -1,6 +1,6 @@
+import 'dotenv/config'; // Load .env trước mọi import khác (để vnpayService nhận được biến môi trường)
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import swaggerUi from 'swagger-ui-express';
 import { connectDB } from "./config/db";
@@ -13,8 +13,6 @@ import orderRouter from "./routes/orderRoute";
 import paymentRouter from "./routes/paymentRoute";
 import adminRouter from "./routes/adminRoute";
 import reviewRouter from "./routes/reviewRoute";
-
-dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;

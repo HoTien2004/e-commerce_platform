@@ -90,6 +90,16 @@ export const buildVnpParams = (order: OrderLike, req: Request) => {
     const ss = createDate.getSeconds().toString().padStart(2, "0");
     const vnp_CreateDate = `${yyyy}${MM}${dd}${HH}${mm}${ss}`;
 
+    // vnp_ExpireDate: Bắt buộc theo tài liệu VNPay - thời gian hết hạn thanh toán (GMT+7)
+    const expireDate = new Date(createDate.getTime() + 15 * 60 * 1000); // +15 phút
+    const vnp_ExpireDate =
+        expireDate.getFullYear().toString() +
+        (expireDate.getMonth() + 1).toString().padStart(2, "0") +
+        expireDate.getDate().toString().padStart(2, "0") +
+        expireDate.getHours().toString().padStart(2, "0") +
+        expireDate.getMinutes().toString().padStart(2, "0") +
+        expireDate.getSeconds().toString().padStart(2, "0");
+
     // VNPay requires vnp_TxnRef to be max 34 characters
     // Use _id (24 chars) if orderNumber is too long
     let orderRef = order.orderNumber || String(order._id);
@@ -133,6 +143,7 @@ export const buildVnpParams = (order: OrderLike, req: Request) => {
         vnp_ReturnUrl: returnUrl,
         vnp_IpAddr: clientIp,
         vnp_CreateDate,
+        vnp_ExpireDate,
     };
 
     // Remove any empty values (VNPay doesn't accept empty params)
@@ -151,43 +162,37 @@ export const buildVnpParams = (order: OrderLike, req: Request) => {
 };
 
 // Sort params and sign with HMAC SHA512
-// IMPORTANT: According to VNPay docs, values should NOT be URL encoded when signing
-// But some special characters in URLs might need handling
+// Thử theo demo PHP VNPay: hashdata = urlencode(key)."=".urlencode(value)
 const signParams = (params: Record<string, string>, hashSecret?: string): string => {
     const secret = hashSecret || VNPAY_HASH_SECRET;
     if (!secret || secret.trim() === "") {
         throw new Error("VNPAY_HASH_SECRET is required for signing");
     }
 
-    // Create a copy and remove vnp_SecureHash if present (should not be in signature calculation)
     const paramsToSign: Record<string, string> = { ...params };
     delete paramsToSign["vnp_SecureHash"];
     delete paramsToSign["vnp_SecureHashType"];
 
-    // Sort keys alphabetically
     const sortedKeys = Object.keys(paramsToSign).sort();
 
-    // Build sign data string WITHOUT encoding values
-    // Format: key1=value1&key2=value2 (values are NOT URL encoded)
+    // Demo PHP: urlencode(key)=urlencode(value). PHP urlencode: space -> '+', encodeURIComponent: space -> '%20'
+    const phpEncode = (s: string) => encodeURIComponent(s).replace(/%20/g, "+");
     const signData = sortedKeys
-        .map((key) => `${key}=${paramsToSign[key]}`)
+        .map((key) => `${phpEncode(key)}=${phpEncode(paramsToSign[key])}`)
         .join("&");
 
-    // Debug logging (remove in production)
     if (process.env.NODE_ENV !== "production") {
-        console.log("VNPay Sign Data:", signData);
-        console.log("VNPay Sign Data Length:", signData.length);
+        console.log("VNPay Sign Data (encoded):", signData.substring(0, 120) + "...");
         console.log("VNPay Hash Secret (first 4 chars):", secret.substring(0, 4) + "...");
     }
 
-    // Sign with HMAC SHA512
     const signature = crypto
         .createHmac("sha512", secret)
         .update(signData, "utf8")
         .digest("hex");
 
     if (process.env.NODE_ENV !== "production") {
-        console.log("VNPay Calculated Signature:", signature);
+        console.log("VNPay Calculated Signature:", signature.substring(0, 32) + "...");
     }
 
     return signature;
@@ -195,21 +200,14 @@ const signParams = (params: Record<string, string>, hashSecret?: string): string
 
 export const buildSignedVnpUrl = (params: Record<string, string>, hashSecret?: string): string => {
     const vnp_Params = { ...params };
-
-    // Calculate signature BEFORE adding it to params
     const vnp_SecureHash = signParams(vnp_Params, hashSecret);
 
-    // Build query string: sort all params (including signature) alphabetically
     const allParams: Record<string, string> = { ...vnp_Params, vnp_SecureHash };
     const sortedKeys = Object.keys(allParams).sort();
 
-    // Encode each param value for URL
+    const phpEncodeUrl = (s: string) => encodeURIComponent(s).replace(/%20/g, "+");
     const queryString = sortedKeys
-        .map((key) => {
-            const value = allParams[key];
-            // Encode value for URL
-            return `${key}=${encodeURIComponent(value)}`;
-        })
+        .map((key) => `${phpEncodeUrl(key)}=${phpEncodeUrl(allParams[key])}`)
         .join("&");
 
     const finalUrl = `${VNPAY_PAYMENT_URL}?${queryString}`;
@@ -241,19 +239,20 @@ export const verifyVnpReturn = (query: ParsedQs): {
         }
     });
 
-    const receivedHash = queryObj["vnp_SecureHash"] || queryObj["vnp_SecureHashType"];
+    const receivedHash = queryObj["vnp_SecureHash"];
     delete queryObj["vnp_SecureHash"];
     delete queryObj["vnp_SecureHashType"];
 
     const sortedKeys = Object.keys(queryObj).sort();
-    // Build sign data WITHOUT encoding values (same as when creating signature)
+    // VNPay ký chuỗi đã URL-encode (giống lúc tạo URL). Dùng cùng cách encode khi verify.
+    const phpEncode = (s: string) => encodeURIComponent(s).replace(/%20/g, "+");
     const signData = sortedKeys
-        .map((key) => `${key}=${queryObj[key]}`)
+        .map((key) => `${phpEncode(key)}=${phpEncode(queryObj[key])}`)
         .join("&");
 
     const calculatedHash = crypto
         .createHmac("sha512", VNPAY_HASH_SECRET)
-        .update(signData)
+        .update(signData, "utf8")
         .digest("hex");
 
     const isValid =

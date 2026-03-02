@@ -1,0 +1,8 @@
+chatbot
+admin
+
+khi sử dụng chatbot cần yêu cầu đăng nhập
+
+xoá nhưng thứ ko liên quan (comment)
+
+hiểu luòng hoạt đọng từng cái (hỏi chat nhưng file liên quan, vd dụ luồng hoạt động của vnpay, nhưng file liên quan)

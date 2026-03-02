@@ -22,6 +22,45 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
 
+  const customerReviews = [
+    {
+      name: 'Nguyễn Minh Khoa',
+      initials: 'MK',
+      product: 'PC Gaming RTX 4060',
+      content: 'Máy chạy ổn định, FPS game mượt, tư vấn nhiệt tình. Sẽ ủng hộ thêm.',
+    },
+    {
+      name: 'Trần Bảo Ngọc',
+      initials: 'BN',
+      product: 'Laptop văn phòng i5',
+      content: 'Giao nhanh, máy nhẹ, pin trâu đúng như tư vấn. Hỗ trợ cài đặt tận nơi.',
+    },
+    {
+      name: 'Lê Quang Huy',
+      initials: 'QH',
+      product: 'Màn hình 27\" 2K 165Hz',
+      content: 'Màu sắc đẹp, phù hợp vừa làm việc vừa chơi game. Giá tốt so với mặt bằng.',
+    },
+  ];
+
+  const quickGuides = [
+    {
+      title: 'Chọn laptop cho sinh viên IT',
+      description: 'Nên chọn CPU, RAM, SSD, màn hình thế nào để code & học tập mượt?',
+      link: '/guides/laptop',
+    },
+    {
+      title: 'Build PC gaming trong tầm giá',
+      description: 'Gợi ý cấu hình tiêu chuẩn cho game esports & AAA phổ biến.',
+      link: '/guides/build-pc',
+    },
+    {
+      title: 'Những câu hỏi thường gặp',
+      description: 'Chính sách bảo hành, đổi trả, giao hàng và trả góp tại HDQTShop.',
+      link: '/faq',
+    },
+  ];
+
   useEffect(() => {
     fetchProducts();
   }, []);
@@ -875,6 +914,79 @@ const Home = () => {
                   <p className="text-sm text-gray-600 mt-1">Đổi máy liền</p>
                 </div>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Customer reviews */}
+        <section className="mt-12 md:mt-16 py-8 md:py-10 bg-white rounded-3xl border border-gray-200 shadow-md">
+          <div className="max-w-[1200px] mx-auto px-4 md:px-6">
+            <div className="flex items-center justify-between mb-6 md:mb-8">
+              <h2 className="text-xl md:text-2xl font-bold text-gray-900 flex items-center gap-2">
+                <FiMessageSquare className="w-5 h-5 text-primary-600" />
+                <span>Khách hàng nói gì về HDQTShop</span>
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+              {customerReviews.map((review) => (
+                <div
+                  key={review.name}
+                  className="bg-gray-50 rounded-2xl border border-gray-100 p-5 shadow-sm hover:shadow-md transition-shadow"
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-semibold text-sm">
+                      {review.initials}
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">{review.name}</p>
+                      <p className="text-xs text-gray-500">Đã mua: {review.product}</p>
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-700 mb-3 line-clamp-3">{review.content}</p>
+                  <div className="flex items-center gap-1 text-amber-500 text-xs">
+                    <span>★★★★★</span>
+                    <span className="text-gray-500">(5.0)</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Quick guides / blog mini */}
+        <section className="mt-10 md:mt-14 mb-4 md:mb-8">
+          <div className="max-w-[1200px] mx-auto px-4 md:px-6">
+            <div className="flex items-center justify-between mb-4 md:mb-6">
+              <h2 className="text-xl md:text-2xl font-bold text-gray-900 flex items-center gap-2">
+                <FiBookOpen className="w-5 h-5 text-primary-600" />
+                <span>Góc tư vấn nhanh</span>
+              </h2>
+              <Link
+                to="/help"
+                className="text-xs md:text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+              >
+                Xem thêm tại Trung tâm hỗ trợ
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+              {quickGuides.map((guide) => (
+                <Link
+                  key={guide.title}
+                  to={guide.link}
+                  className="group bg-white rounded-2xl border border-gray-200 hover:border-primary-300 shadow-sm hover:shadow-md transition-all p-4 md:p-5 flex flex-col justify-between"
+                >
+                  <div>
+                    <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-2 group-hover:text-primary-600 transition-colors">
+                      {guide.title}
+                    </h3>
+                    <p className="text-sm text-gray-600">{guide.description}</p>
+                  </div>
+                  <span className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-primary-600 group-hover:gap-2 transition-all">
+                    Đọc ngay
+                    <span>→</span>
+                  </span>
+                </Link>
+              ))}
             </div>
           </div>
         </section>

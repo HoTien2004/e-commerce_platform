@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
-import Layout from './components/Layout/Layout';
+import ChatLayout from './components/Layout/ChatLayout';
 import Home from './pages/Home';
 import ForgotPassword from './pages/ForgotPassword';
 import Profile from './pages/Profile';
@@ -52,20 +52,18 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   if (!isAuthenticated) {
     return (
-      <Layout>
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold mb-4">Vui lòng đăng nhập</h2>
-            <p className="text-gray-600 mb-4">Bạn cần đăng nhập để truy cập trang này</p>
-            <button
-              onClick={() => openAuthModal('login')}
-              className="btn-primary"
-            >
-              Đăng nhập
-            </button>
-          </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-4">Vui lòng đăng nhập</h2>
+          <p className="text-gray-600 mb-4">Bạn cần đăng nhập để truy cập trang này</p>
+          <button
+            onClick={() => openAuthModal('login')}
+            className="btn-primary"
+          >
+            Đăng nhập
+          </button>
         </div>
-      </Layout>
+      </div>
     );
   }
 
@@ -76,85 +74,75 @@ function App() {
   return (
     <BrowserRouter>
       <ScrollToTop />
-      <Routes>
-        <Route path="/" element={<Layout><Home /></Layout>} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/products" element={<Layout><ProductList /></Layout>} />
-        <Route path="/products/:slug" element={<Layout><ProductDetail /></Layout>} />
-        <Route path="/cart" element={<Layout><Cart /></Layout>} />
-        <Route path="/news" element={<Layout><News /></Layout>} />
-        <Route path="/promotions" element={<Layout><Promotions /></Layout>} />
-        <Route path="/guides/laptop" element={<Layout><LaptopGuide /></Layout>} />
-        <Route path="/guides/build-pc" element={<Layout><BuildPCGuide /></Layout>} />
-        <Route path="/faq" element={<Layout><FAQ /></Layout>} />
-        <Route
-          path="/checkout"
-          element={
-            <ProtectedRoute>
-              <Layout>
+      <ChatLayout>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/products" element={<ProductList />} />
+          <Route path="/products/:slug" element={<ProductDetail />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/news" element={<News />} />
+          <Route path="/promotions" element={<Promotions />} />
+          <Route path="/guides/laptop" element={<LaptopGuide />} />
+          <Route path="/guides/build-pc" element={<BuildPCGuide />} />
+          <Route path="/faq" element={<FAQ />} />
+          <Route
+            path="/checkout"
+            element={
+              <ProtectedRoute>
                 <Checkout />
-              </Layout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/checkout/success"
-          element={
-            <ProtectedRoute>
-              <Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/checkout/success"
+            element={
+              <ProtectedRoute>
                 <CheckoutSuccess />
-              </Layout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/payment/vnpay/result"
-          element={
-            <ProtectedRoute>
-              <Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/payment/vnpay/result"
+            element={
+              <ProtectedRoute>
                 <VnpayResult />
-              </Layout>
-            </ProtectedRoute>
-          }
-        />
-        <Route path="/store" element={<Layout><Store /></Layout>} />
-        <Route path="/help" element={<Layout><Help /></Layout>} />
-        <Route path="/warranty" element={<Layout><Warranty /></Layout>} />
-        <Route path="/shipping" element={<Layout><Shipping /></Layout>} />
-        <Route path="/privacy" element={<Layout><Privacy /></Layout>} />
-        <Route path="/terms" element={<Layout><Terms /></Layout>} />
-        <Route
-          path="/profile"
-          element={
-            <ProtectedRoute>
-              <Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/store" element={<Store />} />
+          <Route path="/help" element={<Help />} />
+          <Route path="/warranty" element={<Warranty />} />
+          <Route path="/shipping" element={<Shipping />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
                 <Profile />
-              </Layout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/orders"
-          element={
-            <ProtectedRoute>
-              <Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/orders"
+            element={
+              <ProtectedRoute>
                 <Orders />
-              </Layout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/orders/:orderNumber"
-          element={
-            <ProtectedRoute>
-              <Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/orders/:orderNumber"
+            element={
+              <ProtectedRoute>
                 <OrderDetail />
-              </Layout>
-            </ProtectedRoute>
-          }
-        />
-        <Route path="*" element={<Layout><NotFound /></Layout>} />
-      </Routes>
+              </ProtectedRoute>
+            }
+          />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </ChatLayout>
     </BrowserRouter>
   );
 }

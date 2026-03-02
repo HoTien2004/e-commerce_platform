@@ -34,6 +34,44 @@ const paymentRouter = express.Router();
  *             paymentUrl:
  *               type: string
  *               description: "VNPay payment URL to redirect user to"
+ *     OrderDetailsItem:
+ *       type: object
+ *       properties:
+ *         name:
+ *           type: string
+ *         quantity:
+ *           type: number
+ *         price:
+ *           type: number
+ *         image:
+ *           type: string
+ *           nullable: true
+ *     OrderDetails:
+ *       type: object
+ *       properties:
+ *         customerInfo:
+ *           type: object
+ *           properties:
+ *             fullName:
+ *               type: string
+ *             phone:
+ *               type: string
+ *             email:
+ *               type: string
+ *         shippingAddress:
+ *           type: string
+ *         items:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/OrderDetailsItem'
+ *         subtotal:
+ *           type: number
+ *         shippingFee:
+ *           type: number
+ *         discount:
+ *           type: number
+ *         total:
+ *           type: number
  *     VnpayConfirmResponse:
  *       type: object
  *       properties:
@@ -57,6 +95,9 @@ const paymentRouter = express.Router();
  *               type: string
  *             responseCode:
  *               type: string
+ *             orderDetails:
+ *               $ref: '#/components/schemas/OrderDetails'
+ *               description: "Thông tin đơn hàng (khách, địa chỉ, sản phẩm) cho trang kết quả"
  */
 
 /**

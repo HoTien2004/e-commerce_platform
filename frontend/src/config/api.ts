@@ -65,5 +65,10 @@ export const API_ENDPOINTS = {
   GET_PRODUCT_REVIEWS: (productId: string) => `/reviews/product/${productId}`,
   TOGGLE_REVIEW_LIKE: (reviewId: string) => `/reviews/${reviewId}/like`,
   DELETE_REVIEW: (reviewId: string) => `/reviews/${reviewId}`,
+
+  // Chat
+  CHAT_CONVERSATIONS: '/chat/conversations',
+  CHAT_CONVERSATION_BY_ID: (id: string) => `/chat/conversations/${id}`,
+  CHAT_SEND_MESSAGE: (id: string) => `/chat/conversations/${id}/messages`,
 } as const;
 

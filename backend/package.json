@@ -13,6 +13,7 @@
   "license": "ISC",
   "description": "Ecommerce build by tienho 02/01/2026",
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "bcrypt": "^5.1.1",
     "cloudinary": "^2.8.0",
     "cors": "^2.8.5",

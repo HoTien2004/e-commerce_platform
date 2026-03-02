@@ -85,6 +85,11 @@ const orderRouter = express.Router();
  *         notes:
  *           type: string
  *           description: "Optional order notes"
+ *         selectedProductIds:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: "Optional - IDs of cart items to order. If omitted, all cart items are ordered."
  *         customerInfo:
  *           type: object
  *           description: "Optional customer info override at checkout"

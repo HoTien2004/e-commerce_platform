@@ -13,6 +13,7 @@ import orderRouter from "./routes/orderRoute";
 import paymentRouter from "./routes/paymentRoute";
 import adminRouter from "./routes/adminRoute";
 import reviewRouter from "./routes/reviewRoute";
+import chatRouter from "./routes/chatRoute";
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -46,6 +47,7 @@ app.use("/api/orders", orderRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/payments", paymentRouter);
 app.use("/api/reviews", reviewRouter);
+app.use("/api/chat", chatRouter);
 
 // Health check endpoint for Render
 app.get("/health", (req, res) => {

@@ -81,13 +81,16 @@ MONGO_URI=mongodb://localhost:27017/e-commerce_platform
 JWT_SECRET=your_jwt_secret
 JWT_REFRESH_SECRET=your_refresh_jwt_secret
 
+# VNPay
 VNP_TMNCODE=your_vnpay_tmncode
 VNP_HASH_SECRET=your_vnpay_hash_secret
 VNP_URL=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
 VNP_RETURN_URL=http://localhost:5173/payment/vnpay/return
 
+# Gemini (chatbot)
 GEMINI_API_KEY=your_gemini_api_key
 
+# Google Login
 GOOGLE_CLIENT_ID=your_google_oauth_client_id.apps.googleusercontent.com
 ```
 
@@ -105,6 +108,32 @@ Nếu admin dùng API backend chung, thường chỉ cần:
 ```env
 VITE_API_BASE_URL=http://localhost:3000/api
 ```
+
+---
+
+## Cấu hình VNPay
+
+- Đăng ký tài khoản **VNPay sandbox** và lấy:
+  - **TmnCode** → gán vào `VNP_TMNCODE`
+  - **HashSecret** → gán vào `VNP_HASH_SECRET`
+  - **Payment URL** (sandbox) → `VNP_URL` (ví dụ: `https://sandbox.vnpayment.vn/paymentv2/vpcpay.html`)
+  - **Return URL**: URL FE nhận kết quả thanh toán, ví dụ:
+    - `VNP_RETURN_URL=http://localhost:5173/payment/vnpay/return`
+- Kiểm tra route VNPay confirm/return trong backend `paymentRoute.ts` + controller để trùng với `VNP_RETURN_URL`.
+
+---
+
+## Cấu hình Gemini (Chatbot)
+
+1. Vào trang **Google AI Studio / Gemini** để tạo **API Key**.
+2. Gán vào:
+
+```env
+GEMINI_API_KEY=your_gemini_api_key
+```
+
+3. Backend đã dùng key này trong `geminiService.ts` để gọi model (ví dụ `gemini-3-flash-preview`).
+4. Nếu không cấu hình, chatbot sẽ báo lỗi “Chatbot chưa được cấu hình…”.
 
 ---
 
@@ -163,7 +192,7 @@ cd admin
 npm run dev
 ```
 
-Admin thường chạy ở `http://localhost:5173` hoặc cổng kế tiếp (tuỳ lúc bạn start).
+Admin thường chạy ở `http://localhost:4000` hoặc cổng kế tiếp (tuỳ lúc bạn start).
 
 ---
 
@@ -233,28 +262,6 @@ Bạn có thể thay bằng link deploy thực tế (Vercel/Netlify/Render/Nginx
 
 ## License
 
-MIT License. Bạn có thể sử dụng, chỉnh sửa, mở rộng dự án cho mục đích học tập hoặc thương mại, miễn là giữ lại phần thông tin bản quyền trong file này.
+Dự án này sử dụng **MIT License**.
 
-```text
-MIT License
-
-Copyright (c) 2026 ...
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
+Chi tiết xem tại file [`LICENSE`](./LICENSE).

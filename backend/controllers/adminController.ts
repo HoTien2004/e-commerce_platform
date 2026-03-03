@@ -33,7 +33,10 @@ export const getDashboardStats = async (req: Request, res: Response): Promise<Re
             pendingOrders,
             shippedOrders,
             deliveredOrders,
-            cancelledOrders
+            cancelledOrders,
+            returnedOrders,
+            revenueByMonth,
+            ordersByDay
         ] = await Promise.all([
             productModel.countDocuments({}),
             orderModel.countDocuments({}),
@@ -54,18 +57,79 @@ export const getDashboardStats = async (req: Request, res: Response): Promise<Re
             orderModel.countDocuments({ orderStatus: 'pending' }),
             orderModel.countDocuments({ orderStatus: 'shipped' }),
             orderModel.countDocuments({ orderStatus: 'delivered' }),
-            orderModel.countDocuments({ orderStatus: 'cancelled' })
+            orderModel.countDocuments({ orderStatus: 'cancelled' }),
+            orderModel.countDocuments({ orderStatus: 'returned' }),
+            // Revenue by month for last 6 months
+            orderModel.aggregate([
+                {
+                    $match: {
+                        orderStatus: { $in: ['delivered', 'shipped'] }
+                    }
+                },
+                {
+                    $group: {
+                        _id: {
+                            year: { $year: '$createdAt' },
+                            month: { $month: '$createdAt' }
+                        },
+                        total: { $sum: '$total' }
+                    }
+                },
+                {
+                    $sort: {
+                        '_id.year': 1,
+                        '_id.month': 1
+                    }
+                }
+            ]),
+            // Orders per day for last 7 days
+            orderModel.aggregate([
+                {
+                    $match: {
+                        createdAt: {
+                            $gte: new Date(new Date().setDate(new Date().getDate() - 6))
+                        }
+                    }
+                },
+                {
+                    $group: {
+                        _id: {
+                            year: { $year: '$createdAt' },
+                            month: { $month: '$createdAt' },
+                            day: { $dayOfMonth: '$createdAt' }
+                        },
+                        count: { $sum: 1 }
+                    }
+                },
+                {
+                    $sort: {
+                        '_id.year': 1,
+                        '_id.month': 1,
+                        '_id.day': 1
+                    }
+                }
+            ])
         ]);
 
         const revenue = totalRevenue.length > 0 ? totalRevenue[0].total : 0;
 
-        // Get recent orders (last 10)
-        const recentOrders = await orderModel
-            .find({})
-            .populate('userId', 'firstName lastName email')
-            .sort({ createdAt: -1 })
-            .limit(10)
-            .select('orderNumber orderStatus total createdAt customerInfo');
+        // Get recent orders with pagination (all orders list)
+        const page = parseInt((req.query.page as string) || "1");
+        const limit = parseInt((req.query.limit as string) || "10");
+        const skip = (page - 1) * limit;
+
+        const [recentOrders, recentTotal] = await Promise.all([
+            orderModel
+                .find({})
+                .populate('userId', 'firstName lastName email')
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit)
+                .select('orderNumber orderStatus total createdAt customerInfo'),
+            orderModel.countDocuments({})
+        ]);
+
+        const totalPages = Math.ceil(recentTotal / limit);
 
         return res.status(200).json({
             success: true,
@@ -79,10 +143,21 @@ export const getDashboardStats = async (req: Request, res: Response): Promise<Re
                         pending: pendingOrders,
                         shipped: shippedOrders,
                         delivered: deliveredOrders,
-                        cancelled: cancelledOrders
-                    }
+                        cancelled: cancelledOrders,
+                        returned: returnedOrders
+                    },
+                    revenueByMonth,
+                    ordersByDay
                 },
-                recentOrders
+                recentOrders,
+                recentOrdersPagination: {
+                    currentPage: page,
+                    itemsPerPage: limit,
+                    totalItems: recentTotal,
+                    totalPages,
+                    hasNextPage: page < totalPages,
+                    hasPrevPage: page > 1
+                }
             }
         });
 

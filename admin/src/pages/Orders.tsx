@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { orderService, type Order } from '../services/orderService';
-import { FiEye, FiEdit, FiSearch } from 'react-icons/fi';
+import { FiEye, FiEdit, FiSearch, FiTrash2 } from 'react-icons/fi';
+import toast from 'react-hot-toast';
+import ConfirmModal from '../components/ConfirmModal';
 
 const Orders = () => {
   const navigate = useNavigate();
@@ -12,6 +14,11 @@ const Orders = () => {
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [searchOrderNumber, setSearchOrderNumber] = useState('');
   const [searchEmail, setSearchEmail] = useState('');
+  const [pendingStatusChange, setPendingStatusChange] = useState<{ orderId: string; newStatus: string } | null>(
+    null
+  );
+  const [deleteOrderId, setDeleteOrderId] = useState<string | null>(null);
+  const [deleteOrderNumber, setDeleteOrderNumber] = useState<string>('');
 
   useEffect(() => {
     loadOrders();
@@ -54,17 +61,52 @@ const Orders = () => {
     loadOrders();
   };
 
-  const handleStatusChange = async (orderId: string, newStatus: string) => {
-    if (!confirm(`Bạn có chắc muốn cập nhật trạng thái đơn hàng thành "${newStatus}"?`)) {
-      return;
-    }
+  const handleStatusChange = (orderId: string, newStatus: string) => {
+    setPendingStatusChange({ orderId, newStatus });
+  };
 
+  const confirmStatusChange = async () => {
+    if (!pendingStatusChange) return;
     try {
-      await orderService.updateOrderStatus(orderId, { orderStatus: newStatus as any });
+      await orderService.updateOrderStatus(pendingStatusChange.orderId, {
+        orderStatus: pendingStatusChange.newStatus as any,
+      });
+      toast.success('Cập nhật trạng thái đơn hàng thành công!');
+      setPendingStatusChange(null);
       loadOrders();
     } catch (error: any) {
       console.error('Error updating order status:', error);
-      alert('Lỗi khi cập nhật trạng thái đơn hàng');
+      toast.error(error.response?.data?.message || 'Lỗi khi cập nhật trạng thái đơn hàng');
+    }
+  };
+
+  const cancelStatusChange = () => {
+    setPendingStatusChange(null);
+    // Reload to reset select value to actual status
+    loadOrders();
+  };
+
+  const handleOpenDeleteOrder = (order: Order) => {
+    setDeleteOrderId(order._id);
+    setDeleteOrderNumber(order.orderNumber);
+  };
+
+  const handleDeleteOrder = async () => {
+    if (!deleteOrderId) return;
+    try {
+      const response = await orderService.deleteOrder(deleteOrderId);
+      if (response.success) {
+        setOrders((prev) => prev.filter((o) => o._id !== deleteOrderId));
+        toast.success('Xóa đơn hàng thành công!');
+      } else {
+        toast.error(response.message || 'Không thể xóa đơn hàng');
+      }
+    } catch (error: any) {
+      console.error('Error deleting order:', error);
+      toast.error(error.response?.data?.message || 'Không thể xóa đơn hàng');
+    } finally {
+      setDeleteOrderId(null);
+      setDeleteOrderNumber('');
     }
   };
 
@@ -261,13 +303,22 @@ const Orders = () => {
                         {formatDate(order.createdAt)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button
-                          onClick={() => navigate(`/orders/${order.orderNumber}`)}
-                          className="text-primary-600 hover:text-primary-900 flex items-center gap-1"
-                        >
-                          <FiEye className="w-4 h-4" />
-                          Xem
-                        </button>
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => navigate(`/orders/${order.orderNumber}`)}
+                            className="text-primary-600 hover:text-primary-900 flex items-center gap-1"
+                          >
+                            <FiEye className="w-4 h-4" />
+                            Xem
+                          </button>
+                          <button
+                            onClick={() => handleOpenDeleteOrder(order)}
+                            className="text-red-600 hover:text-red-800 flex items-center gap-1"
+                          >
+                            <FiTrash2 className="w-4 h-4" />
+                            Xóa
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -302,6 +353,40 @@ const Orders = () => {
           )}
         </>
       )}
+
+      {/* Confirm status change modal */}
+      <ConfirmModal
+        isOpen={!!pendingStatusChange}
+        title="Cập nhật trạng thái đơn hàng"
+        message={
+          pendingStatusChange
+            ? `Bạn có chắc muốn cập nhật trạng thái đơn hàng thành "${getStatusLabel(
+                pendingStatusChange.newStatus,
+              )}"?`
+            : ''
+        }
+        confirmLabel="Cập nhật"
+        cancelLabel="Hủy"
+        onConfirm={confirmStatusChange}
+        onCancel={cancelStatusChange}
+      />
+
+      <ConfirmModal
+        isOpen={!!deleteOrderId}
+        title="Xóa đơn hàng"
+        message={
+          deleteOrderId
+            ? `Bạn có chắc chắn muốn xóa đơn hàng "${deleteOrderNumber}"? Hành động này không thể hoàn tác.`
+            : ''
+        }
+        confirmLabel="Xóa"
+        cancelLabel="Hủy"
+        onConfirm={handleDeleteOrder}
+        onCancel={() => {
+          setDeleteOrderId(null);
+          setDeleteOrderNumber('');
+        }}
+      />
     </div>
   );
 };

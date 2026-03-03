@@ -18,6 +18,7 @@ import {
 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import { scrollToTop } from '../utils/scrollToTop';
+import ConfirmModal from '../components/Modal/ConfirmModal';
 
 // Helper function to validate image URL
 const isValidImageUrl = (url: string | undefined): boolean => {
@@ -400,32 +401,12 @@ const OrderDetail = () => {
 
               {order.orderStatus === 'pending' && (
                 <div className="mt-4">
-                  {showCancelConfirm ? (
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-sm text-gray-600">Bạn có chắc chắn muốn hủy đơn hàng này?</span>
-                      <button
-                        onClick={handleCancelOrder}
-                        disabled={isCancelling}
-                        className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                      >
-                        {isCancelling ? 'Đang xử lý...' : 'Xác nhận hủy'}
-                      </button>
-                      <button
-                        onClick={() => setShowCancelConfirm(false)}
-                        disabled={isCancelling}
-                        className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium text-sm"
-                      >
-                        Hủy
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => setShowCancelConfirm(true)}
-                      className="w-full bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition-colors font-medium"
-                    >
-                      Hủy đơn hàng
-                    </button>
-                  )}
+                  <button
+                    onClick={() => setShowCancelConfirm(true)}
+                    className="w-full bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition-colors font-medium"
+                  >
+                    Hủy đơn hàng
+                  </button>
                 </div>
               )}
 
@@ -439,6 +420,19 @@ const OrderDetail = () => {
           </div>
         </div>
       </div>
+      <ConfirmModal
+        isOpen={showCancelConfirm}
+        title="Hủy đơn hàng"
+        message="Bạn có chắc chắn muốn hủy đơn hàng này? Hành động này không thể hoàn tác."
+        confirmLabel={isCancelling ? 'Đang xử lý...' : 'Hủy đơn'}
+        cancelLabel="Quay lại"
+        onConfirm={handleCancelOrder}
+        onCancel={() => {
+          if (!isCancelling) {
+            setShowCancelConfirm(false);
+          }
+        }}
+      />
     </div>
   );
 };

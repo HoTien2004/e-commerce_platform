@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { userService, type User } from '../services/userService';
-import { FiSearch } from 'react-icons/fi';
+import { FiSearch, FiTrash2 } from 'react-icons/fi';
+import ConfirmModal from '../components/ConfirmModal';
+import toast from 'react-hot-toast';
 
 const Users = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -8,7 +10,15 @@ const Users = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedRole, setSelectedRole] = useState<'user' | 'admin'>('user');
+  const [selectedRole, setSelectedRole] = useState<'all' | 'user' | 'admin'>('all');
+  const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
+  const [deleteUserName, setDeleteUserName] = useState<string>('');
+  const [pendingRoleChange, setPendingRoleChange] = useState<{
+    userId: string;
+    newRole: 'user' | 'admin';
+    name: string;
+  } | null>(null);
+  const [isUpdatingRole, setIsUpdatingRole] = useState(false);
 
   useEffect(() => {
     loadUsers();
@@ -21,7 +31,7 @@ const Users = () => {
         page: currentPage,
         limit: 15,
         search: searchTerm || undefined,
-        role: selectedRole,
+        role: selectedRole === 'all' ? undefined : selectedRole,
       });
       if (response.success) {
         setUsers(response.data.users);
@@ -39,12 +49,59 @@ const Users = () => {
     loadUsers();
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('vi-VN', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
+  const handleOpenRoleChange = (user: User, newRole: 'user' | 'admin') => {
+    if (user.role === newRole) return;
+    const name = `${user.firstName} ${user.lastName}`.trim() || user.email;
+    setPendingRoleChange({
+      userId: user._id,
+      newRole,
+      name,
     });
+  };
+
+  const handleConfirmRoleChange = async () => {
+    if (!pendingRoleChange) return;
+    try {
+      setIsUpdatingRole(true);
+      const { userId, newRole } = pendingRoleChange;
+      const response = await userService.updateUserRole(userId, newRole);
+      if (response.success) {
+        setUsers((prev) =>
+          prev.map((u) => (u._id === userId ? { ...u, role: response.data.user.role } : u)),
+        );
+        toast.success('Cập nhật vai trò người dùng thành công!');
+      }
+    } catch (error: any) {
+      console.error('Error updating user role:', error);
+      toast.error(error.response?.data?.message || 'Không thể cập nhật vai trò người dùng');
+    } finally {
+      setIsUpdatingRole(false);
+      setPendingRoleChange(null);
+    }
+  };
+
+  const handleConfirmDelete = (user: User) => {
+    setDeleteUserId(user._id);
+    setDeleteUserName(`${user.firstName} ${user.lastName}`.trim() || user.email);
+  };
+
+  const handleDeleteUser = async () => {
+    if (!deleteUserId) return;
+    try {
+      const response = await userService.deleteUser(deleteUserId);
+      if (response.success) {
+        setUsers((prev) => prev.filter((u) => u._id !== deleteUserId));
+        toast.success('Xóa người dùng thành công!');
+      } else {
+        toast.error(response.message || 'Không thể xóa người dùng');
+      }
+    } catch (error: any) {
+      console.error('Error deleting user:', error);
+      toast.error(error.response?.data?.message || 'Không thể xóa người dùng');
+    } finally {
+      setDeleteUserId(null);
+      setDeleteUserName('');
+    }
   };
 
   return (
@@ -69,11 +126,12 @@ const Users = () => {
             <select
               value={selectedRole}
               onChange={(e) => {
-                setSelectedRole(e.target.value as 'user' | 'admin');
+                setSelectedRole(e.target.value as 'all' | 'user' | 'admin');
                 setCurrentPage(1);
               }}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
             >
+              <option value="all">Tất cả</option>
               <option value="user">Người dùng</option>
               <option value="admin">Quản trị viên</option>
             </select>
@@ -116,8 +174,8 @@ const Users = () => {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Vai trò
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Ngày đăng ký
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Thao tác
                     </th>
                   </tr>
                 </thead>
@@ -156,16 +214,27 @@ const Users = () => {
                         {user.phone || '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          user.role === 'admin' 
-                            ? 'bg-purple-100 text-purple-800' 
-                            : 'bg-blue-100 text-blue-800'
-                        }`}>
-                          {user.role === 'admin' ? 'Quản trị viên' : 'Người dùng'}
-                        </span>
+                        <select
+                          value={user.role}
+                          onChange={(e) => handleOpenRoleChange(user, e.target.value as 'user' | 'admin')}
+                          className={`px-2 py-1 text-xs font-semibold rounded-full border ${
+                            user.role === 'admin'
+                              ? 'bg-purple-50 text-purple-800 border-purple-200'
+                              : 'bg-blue-50 text-blue-800 border-blue-200'
+                          }`}
+                        >
+                          <option value="user">Người dùng</option>
+                          <option value="admin">Quản trị viên</option>
+                        </select>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatDate(user.createdAt)}
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
+                        <button
+                          onClick={() => handleConfirmDelete(user)}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 text-xs font-medium"
+                        >
+                          <FiTrash2 className="w-4 h-4" />
+                          Xóa
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -200,6 +269,43 @@ const Users = () => {
           )}
         </>
       )}
+
+      <ConfirmModal
+        isOpen={!!deleteUserId}
+        title="Xóa người dùng"
+        message={
+          deleteUserId
+            ? `Bạn có chắc chắn muốn xóa người dùng "${deleteUserName}"? Hành động này không thể hoàn tác.`
+            : ''
+        }
+        confirmLabel="Xóa"
+        cancelLabel="Hủy"
+        onConfirm={handleDeleteUser}
+        onCancel={() => {
+          setDeleteUserId(null);
+          setDeleteUserName('');
+        }}
+      />
+
+      <ConfirmModal
+        isOpen={!!pendingRoleChange}
+        title="Cập nhật vai trò người dùng"
+        message={
+          pendingRoleChange
+            ? `Bạn có chắc muốn đổi vai trò của "${pendingRoleChange.name}" thành ${
+                pendingRoleChange.newRole === 'admin' ? 'Quản trị viên' : 'Người dùng'
+              }?`
+            : ''
+        }
+        confirmLabel={isUpdatingRole ? 'Đang cập nhật...' : 'Cập nhật'}
+        cancelLabel="Hủy"
+        onConfirm={handleConfirmRoleChange}
+        onCancel={() => {
+          if (!isUpdatingRole) {
+            setPendingRoleChange(null);
+          }
+        }}
+      />
     </div>
   );
 };

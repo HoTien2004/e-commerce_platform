@@ -11,7 +11,23 @@ export interface DashboardStats {
     shipped: number;
     delivered: number;
     cancelled: number;
+    returned: number;
   };
+  revenueByMonth: {
+    _id: {
+      year: number;
+      month: number;
+    };
+    total: number;
+  }[];
+  ordersByDay: {
+    _id: {
+      year: number;
+      month: number;
+      day: number;
+    };
+    count: number;
+  }[];
 }
 
 export interface RecentOrder {
@@ -37,13 +53,21 @@ export interface DashboardResponse {
   data: {
     stats: DashboardStats;
     recentOrders: RecentOrder[];
+    recentOrdersPagination: {
+      currentPage: number;
+      itemsPerPage: number;
+      totalItems: number;
+      totalPages: number;
+      hasNextPage: boolean;
+      hasPrevPage: boolean;
+    };
   };
 }
 
 export const adminService = {
   // Get dashboard statistics
-  getDashboardStats: async (): Promise<DashboardResponse> => {
-    const response = await api.get<DashboardResponse>(API_ENDPOINTS.DASHBOARD_STATS);
+  getDashboardStats: async (params?: { page?: number; limit?: number }): Promise<DashboardResponse> => {
+    const response = await api.get<DashboardResponse>(API_ENDPOINTS.DASHBOARD_STATS, { params });
     return response.data;
   },
 };

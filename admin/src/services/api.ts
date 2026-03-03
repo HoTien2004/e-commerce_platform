@@ -1,5 +1,6 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { API_BASE_URL, API_ENDPOINTS } from '../config/api';
+import { useAuthStore } from '../store/authStore';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -34,10 +35,12 @@ api.interceptors.response.use(
       try {
         const refreshToken = localStorage.getItem('refreshToken');
         if (!refreshToken) {
-          // Clear tokens and let ProtectedRoute handle redirect
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('refreshToken');
-          // Don't redirect here - let the component handle it
+          // Không có refresh token -> đăng xuất ở store
+          try {
+            useAuthStore.getState().logout();
+          } catch {
+            // ignore
+          }
           return Promise.reject(error);
         }
 
@@ -56,10 +59,12 @@ api.interceptors.response.use(
         }
         return api(originalRequest);
       } catch (refreshError) {
-        // Clear tokens and let ProtectedRoute handle redirect
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        // Don't redirect here - let the component handle it
+        // Refresh thất bại -> đăng xuất ở store
+        try {
+          useAuthStore.getState().logout();
+        } catch {
+          // ignore
+        }
         return Promise.reject(refreshError);
       }
     }

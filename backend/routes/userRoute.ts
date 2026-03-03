@@ -1,5 +1,5 @@
 import express from "express";
-import { loginUser, logoutUser, registerUser, verifyOTPAndRegister, resendOTP, forgotPassword, verifyResetPasswordOTP, resetPassword, refreshAccessToken, getUserProfile, updateUserProfile, changePassword, uploadAvatar, deleteAvatar, addAddress, updateAddress, deleteAddress, setDefaultAddress, getAllUsers } from "../controllers/userController";
+import { loginUser, logoutUser, registerUser, verifyOTPAndRegister, resendOTP, forgotPassword, verifyResetPasswordOTP, resetPassword, refreshAccessToken, getUserProfile, updateUserProfile, changePassword, uploadAvatar, deleteAvatar, addAddress, updateAddress, deleteAddress, setDefaultAddress, getAllUsers, deleteUserById, updateUserRoleById } from "../controllers/userController";
 import { verifyToken } from "../middleware/authMiddleware";
 import { upload } from "../middleware/uploadMiddleware";
 
@@ -971,7 +971,7 @@ userRouter.put("/addresses/:addressId/default", verifyToken, setDefaultAddress);
  *         schema:
  *           type: string
  *           enum: [user, admin]
- *         description: Filter by user role
+ *         description: Filter by user role. If omitted, all roles are returned.
  *     responses:
  *       200:
  *         description: List of users
@@ -979,5 +979,75 @@ userRouter.put("/addresses/:addressId/default", verifyToken, setDefaultAddress);
  *         description: Access denied (admin only)
  */
 userRouter.get("/all", verifyToken, getAllUsers);
+
+/**
+ * @swagger
+ * /api/user/{id}:
+ *   delete:
+ *     summary: Delete a user (admin only)
+ *     description: Permanently delete a user by ID. Requires admin role.
+ *     tags: [User]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User ID to delete
+ *     responses:
+ *       200:
+ *         description: User deleted successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Access denied (admin only)
+ *       404:
+ *         description: User not found
+ */
+userRouter.delete("/:id", verifyToken, deleteUserById);
+
+/**
+ * @swagger
+ * /api/user/{id}/role:
+ *   patch:
+ *     summary: Update user role (admin only)
+ *     description: Update the role of a user (user or admin). Requires admin role.
+ *     tags: [User]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User ID to update
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - role
+ *             properties:
+ *               role:
+ *                 type: string
+ *                 enum: [user, admin]
+ *     responses:
+ *       200:
+ *         description: User role updated successfully
+ *       400:
+ *         description: Invalid role
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Access denied (admin only)
+ *       404:
+ *         description: User not found
+ */
+userRouter.patch("/:id/role", verifyToken, updateUserRoleById);
 
 export default userRouter;

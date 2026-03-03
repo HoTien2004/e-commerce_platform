@@ -22,14 +22,14 @@ const VNPAY_CURR_CODE = (process.env.VNPAY_CURR_CODE || "VND").trim();
 const VNPAY_LOCALE = (process.env.VNPAY_LOCALE || "vn").trim();
 
 // Debug: Log env vars on module load (only in development)
-if (process.env.NODE_ENV !== "production") {
-    console.log("VNPay Config Check:", {
-        VNPAY_TMN_CODE: VNPAY_TMN_CODE ? `${VNPAY_TMN_CODE.substring(0, 4)}...` : "❌ MISSING",
-        VNPAY_HASH_SECRET: VNPAY_HASH_SECRET ? "✅ Set" : "❌ MISSING",
-        VNPAY_RETURN_URL: VNPAY_RETURN_URL || "❌ MISSING",
-        VNPAY_PAYMENT_URL: VNPAY_PAYMENT_URL,
-    });
-}
+// if (process.env.NODE_ENV !== "production") {
+//     console.log("VNPay Config Check:", {
+//         VNPAY_TMN_CODE: VNPAY_TMN_CODE ? `${VNPAY_TMN_CODE.substring(0, 4)}...` : "❌ MISSING",
+//         VNPAY_HASH_SECRET: VNPAY_HASH_SECRET ? "✅ Set" : "❌ MISSING",
+//         VNPAY_RETURN_URL: VNPAY_RETURN_URL || "❌ MISSING",
+//         VNPAY_PAYMENT_URL: VNPAY_PAYMENT_URL,
+//     });
+// }
 
 // Helper to get client IP from request
 // VNPay requires IPv4 format, not IPv6

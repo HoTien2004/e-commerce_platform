@@ -3,6 +3,7 @@ import { FiMapPin, FiPlus, FiCheck, FiTrash2, FiEdit2 } from 'react-icons/fi';
 import AddressAutocomplete from './AddressAutocomplete';
 import toast from 'react-hot-toast';
 import type { UserAddress } from '../services/profileService';
+import ConfirmModal from './Modal/ConfirmModal';
 
 interface AddressManagerProps {
   addresses: UserAddress[];
@@ -223,38 +224,15 @@ const AddressManager = ({
                       <FiEdit2 className="w-4 h-4" />
                     </button>
                     {!addr.isDefault && (
-                      <span className="flex items-center gap-1">
-                        {confirmDeleteId === addr._id ? (
-                          <>
-                            <span className="text-xs text-gray-600 mr-1">Xóa?</span>
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteAddress(addr._id!)}
-                              disabled={isLoading}
-                              className="text-xs py-1 px-2 text-white bg-red-600 hover:bg-red-700 rounded"
-                            >
-                              Xác nhận
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setConfirmDeleteId(null)}
-                              className="text-xs py-1 px-2 text-gray-600 hover:bg-gray-100 rounded"
-                            >
-                              Hủy
-                            </button>
-                          </>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => setConfirmDeleteId(addr._id!)}
-                            disabled={isLoading}
-                            className="p-1.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                            title="Xóa"
-                          >
-                            <FiTrash2 className="w-4 h-4" />
-                          </button>
-                        )}
-                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setConfirmDeleteId(addr._id!)}
+                        disabled={isLoading}
+                        className="p-1.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                        title="Xóa"
+                      >
+                        <FiTrash2 className="w-4 h-4" />
+                      </button>
                     )}
                   </div>
                 </div>
@@ -263,6 +241,16 @@ const AddressManager = ({
           ))
         )}
       </div>
+
+      <ConfirmModal
+        isOpen={!!confirmDeleteId}
+        title="Xóa địa chỉ"
+        message="Bạn có chắc chắn muốn xóa địa chỉ này? Hành động này không thể hoàn tác."
+        confirmLabel="Xóa"
+        cancelLabel="Hủy"
+        onConfirm={() => confirmDeleteId && handleDeleteAddress(confirmDeleteId)}
+        onCancel={() => setConfirmDeleteId(null)}
+      />
     </div>
   );
 };

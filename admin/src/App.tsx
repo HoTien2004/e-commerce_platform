@@ -11,6 +11,7 @@ import OrderDetail from './pages/OrderDetail';
 import Users from './pages/Users';
 import PromoCodes from './pages/PromoCodes';
 import Reviews from './pages/Reviews';
+import Settings from './pages/Settings';
 
 // Scroll to top on route change
 const ScrollToTop = () => {
@@ -112,10 +113,7 @@ function App() {
           element={
             <ProtectedRoute>
               <AdminLayout>
-                <div className="p-6">
-                  <h1 className="text-3xl font-bold text-gray-900 mb-6">Cài đặt</h1>
-                  <p className="text-gray-500">Tính năng đang được phát triển...</p>
-                </div>
+                <Settings />
               </AdminLayout>
             </ProtectedRoute>
           }

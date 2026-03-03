@@ -3,6 +3,7 @@ import { FiPlus, FiEdit, FiTrash2, FiSearch, FiX } from 'react-icons/fi';
 import { productService, Product } from '../services/productService';
 import toast from 'react-hot-toast';
 import ProductModal from '../components/ProductModal';
+import ConfirmModal from '../components/ConfirmModal';
 
 const Products = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -14,6 +15,7 @@ const Products = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [sortBy, setSortBy] = useState<'createdAt' | 'name' | 'price'>('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchProducts();
@@ -50,13 +52,10 @@ const Products = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')) {
-      return;
-    }
-
     try {
       await productService.deleteProduct(id);
       toast.success('Xóa sản phẩm thành công!');
+      setConfirmDeleteId(null);
       fetchProducts();
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Lỗi khi xóa sản phẩm');
@@ -248,7 +247,7 @@ const Products = () => {
                           <FiEdit className="h-5 w-5" />
                         </button>
                         <button
-                          onClick={() => handleDelete(product._id)}
+                          onClick={() => setConfirmDeleteId(product._id)}
                           className="text-red-600 hover:text-red-900 p-2 rounded hover:bg-red-50 transition-colors"
                           title="Xóa"
                         >
@@ -315,6 +314,17 @@ const Products = () => {
           </>
         )}
       </div>
+
+      {/* Confirm delete modal */}
+      <ConfirmModal
+        isOpen={!!confirmDeleteId}
+        title="Xóa sản phẩm"
+        message="Bạn có chắc chắn muốn xóa sản phẩm này? Hành động này không thể hoàn tác."
+        confirmLabel="Xóa"
+        cancelLabel="Hủy"
+        onConfirm={() => confirmDeleteId && handleDelete(confirmDeleteId)}
+        onCancel={() => setConfirmDeleteId(null)}
+      />
 
       {/* Product Modal */}
       {isModalOpen && (

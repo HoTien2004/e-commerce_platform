@@ -41,5 +41,23 @@ export const userService = {
     const response = await api.get<UsersResponse>(API_ENDPOINTS.ALL_USERS, { params });
     return response.data;
   },
+
+  // Delete user (admin only)
+  deleteUser: async (id: string): Promise<{ success: boolean; message: string }> => {
+    const response = await api.delete<{ success: boolean; message: string }>(API_ENDPOINTS.USER_BY_ID(id));
+    return response.data;
+  },
+
+  // Update user role (admin only)
+  updateUserRole: async (
+    id: string,
+    role: 'user' | 'admin'
+  ): Promise<{ success: boolean; message: string; data: { user: User } }> => {
+    const response = await api.patch<{ success: boolean; message: string; data: { user: User } }>(
+      API_ENDPOINTS.USER_ROLE(id),
+      { role }
+    );
+    return response.data;
+  },
 };
 

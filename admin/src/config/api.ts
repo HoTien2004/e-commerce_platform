@@ -16,11 +16,14 @@ export const API_ENDPOINTS = {
   // Admin
   DASHBOARD_STATS: '/admin/dashboard/stats',
   ALL_USERS: '/user/all',
+  USER_BY_ID: (id: string) => `/user/${id}`,
+  USER_ROLE: (id: string) => `/user/${id}/role`,
   
   // Orders
   ORDERS: '/orders',
   ORDER_BY_ID: (id: string) => `/orders/${id}`,
   UPDATE_ORDER_STATUS: (id: string) => `/orders/${id}/status`,
+  DELETE_ORDER: (id: string) => `/orders/${id}`,
   
   // Promo Codes
   PROMO_CODES: '/promo-code',

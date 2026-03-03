@@ -4,6 +4,7 @@ import { useAuthStore } from '../store/authStore';
 import { useModalStore } from '../store/modalStore';
 import { chatService, type ChatMessage, type ConversationSummary } from '../services/chatService';
 import toast from 'react-hot-toast';
+import ConfirmModal from './Modal/ConfirmModal';
 
 interface ChatPanelProps {
   isExpanded: boolean;
@@ -15,12 +16,14 @@ const ChatPanel = ({ isExpanded, onToggleExpand, onClose }: ChatPanelProps) => {
   const { isAuthenticated } = useAuthStore();
   const { openAuthModal } = useModalStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const skipNextLoadRef = useRef(false);
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [currentId, setCurrentId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingList, setLoadingList] = useState(false);
+  const [blockedActionMessage, setBlockedActionMessage] = useState<string | null>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -37,11 +40,18 @@ const ChatPanel = ({ isExpanded, onToggleExpand, onClose }: ChatPanelProps) => {
   }, [isAuthenticated]);
 
   useEffect(() => {
-    if (currentId && isAuthenticated) {
-      loadConversation(currentId);
-    } else {
+    if (!currentId || !isAuthenticated) {
       setMessages([]);
+      return;
     }
+
+    if (skipNextLoadRef.current) {
+      // Bỏ qua lần load đầu tiên sau khi vừa tạo hội thoại mới ở FE
+      skipNextLoadRef.current = false;
+      return;
+    }
+
+    loadConversation(currentId);
   }, [currentId, isAuthenticated]);
 
   useEffect(() => {
@@ -74,6 +84,10 @@ const ChatPanel = ({ isExpanded, onToggleExpand, onClose }: ChatPanelProps) => {
   };
 
   const handleNewConversation = async () => {
+    if (loading) {
+      setBlockedActionMessage('Chatbot đang trả lời. Vui lòng đợi trả lời xong rồi hãy tạo hội thoại mới.');
+      return;
+    }
     if (!isAuthenticated) {
       openAuthModal('login');
       return;
@@ -85,6 +99,7 @@ const ChatPanel = ({ isExpanded, onToggleExpand, onClose }: ChatPanelProps) => {
           { _id: res.data!.conversation._id, title: res.data!.conversation.title, updatedAt: res.data!.conversation.updatedAt },
           ...prev,
         ]);
+        skipNextLoadRef.current = true;
         setCurrentId(res.data.conversation._id);
         setMessages([]);
       }
@@ -128,6 +143,7 @@ const ChatPanel = ({ isExpanded, onToggleExpand, onClose }: ChatPanelProps) => {
           { _id: convId!, title: res.data!.conversation.title, updatedAt: res.data!.conversation.updatedAt },
           ...prev,
         ]);
+        skipNextLoadRef.current = true;
         setCurrentId(convId);
       } catch (e: any) {
         toast.error(e.response?.data?.message || 'Không tạo được hội thoại');
@@ -159,9 +175,8 @@ const ChatPanel = ({ isExpanded, onToggleExpand, onClose }: ChatPanelProps) => {
   if (!isAuthenticated) {
     return (
       <div
-        className={`fixed right-6 bottom-6 z-50 bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden transition-all duration-300 origin-bottom-right ${
-          isExpanded ? 'w-[min(90vw,560px)] h-[min(75vh,640px)]' : 'w-[340px] h-[455px]'
-        }`}
+        className={`fixed right-6 bottom-6 z-50 bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden transition-all duration-300 origin-bottom-right ${isExpanded ? 'w-[min(90vw,560px)] h-[min(75vh,640px)]' : 'w-[340px] h-[455px]'
+          }`}
       >
         <div className="flex items-center justify-between px-4 py-3 bg-primary-600 text-white">
           <div className="flex items-center gap-3">
@@ -197,151 +212,176 @@ const ChatPanel = ({ isExpanded, onToggleExpand, onClose }: ChatPanelProps) => {
   }
 
   return (
-    <div
-      className={`fixed right-6 bottom-6 z-50 bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden transition-all duration-300 origin-bottom-right ${
-        isExpanded ? 'w-[min(90vw,560px)] h-[min(75vh,640px)]' : 'w-[340px] h-[455px]'
-      }`}
-    >
-      <div className="flex items-center justify-between px-4 py-3 bg-primary-600 text-white shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-primary-500 flex items-center justify-center font-bold text-sm">HD</div>
-          <div className="flex flex-col">
-            <span className="font-semibold text-sm">HDQTShop</span>
-            <span className="text-xs text-primary-100">Chat với chúng tôi</span>
-          </div>
-        </div>
-        <div className="flex items-center gap-1">
-          <button type="button" className="p-1 rounded-full hover:bg-primary-500" onClick={onToggleExpand} aria-label="Thu nhỏ/Phóng to">
-            {isExpanded ? <FiMinimize2 className="w-4 h-4" /> : <FiMaximize2 className="w-4 h-4" />}
-          </button>
-          <button type="button" className="p-1 rounded-full hover:bg-primary-500" onClick={onClose} aria-label="Đóng">
-            <FiX className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-
-      <div className="flex flex-1 min-h-0">
-        {/* Sidebar: danh sách hội thoại (chỉ khi expanded) */}
-        {isExpanded && (
-          <div className="w-48 border-r border-gray-200 bg-gray-50 flex flex-col shrink-0">
-            <button
-              type="button"
-              onClick={handleNewConversation}
-              className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium text-primary-600 hover:bg-primary-50 border-b border-gray-200"
-            >
-              <FiPlus className="w-4 h-4" />
-              Hội thoại mới
-            </button>
-            <div className="flex-1 overflow-y-auto">
-              {loadingList ? (
-                <p className="p-3 text-xs text-gray-500">Đang tải...</p>
-              ) : conversations.length === 0 ? (
-                <p className="p-3 text-xs text-gray-500">Chưa có hội thoại</p>
-              ) : (
-                conversations.map((c) => (
-                  <div
-                    key={c._id}
-                    onClick={() => setCurrentId(c._id)}
-                    className={`group flex items-center gap-2 px-3 py-2 text-left cursor-pointer border-b border-gray-100 ${
-                      currentId === c._id ? 'bg-primary-50 text-primary-700' : 'hover:bg-gray-100'
-                    }`}
-                  >
-                    <FiMessageCircle className="w-4 h-4 shrink-0 text-gray-400" />
-                    <span className="flex-1 truncate text-sm">{c.title}</span>
-                    <button
-                      type="button"
-                      onClick={(e) => handleDeleteConversation(c._id, e)}
-                      className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-100 text-red-600 shrink-0"
-                      aria-label="Xóa hội thoại"
-                    >
-                      <FiTrash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                ))
-              )}
+    <>
+      <div
+        className={`fixed right-6 bottom-6 z-50 bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden transition-all duration-300 origin-bottom-right ${isExpanded ? 'w-[min(90vw,560px)] h-[min(75vh,640px)]' : 'w-[340px] h-[455px]'
+          }`}
+      >
+        <div className="flex items-center justify-between px-4 py-3 bg-primary-600 text-white shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-primary-500 flex items-center justify-center font-bold text-sm">HD</div>
+            <div className="flex flex-col">
+              <span className="font-semibold text-sm">HDQTShop</span>
+              <span className="text-xs text-primary-100">Chat với chúng tôi</span>
             </div>
           </div>
-        )}
-
-        <div className="flex flex-col flex-1 min-w-0">
-          {/* Khu vực tin nhắn */}
-          <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3 text-sm bg-gray-50">
-            {messages.length === 0 && !currentId && (
-              <div className="flex justify-start">
-                <div className="max-w-[85%] rounded-2xl rounded-bl-sm bg-white px-3 py-2 shadow-sm border border-gray-200">
-                  <p className="text-gray-800">Xin chào! HDQTShop có thể hỗ trợ gì cho bạn hôm nay?</p>
-                </div>
-              </div>
-            )}
-            {messages.map((m, i) =>
-              m.role === 'user' ? (
-                <div key={i} className="flex justify-end">
-                  <div className="max-w-[85%] rounded-2xl rounded-br-sm bg-primary-600 text-white px-3 py-2">
-                    <p className="text-sm">{m.text}</p>
-                  </div>
-                </div>
-              ) : (
-                <div key={i} className="flex justify-start">
-                  <div className="max-w-[85%] rounded-2xl rounded-bl-sm bg-white px-3 py-2 shadow-sm border border-gray-200">
-                    <p className="text-gray-800 whitespace-pre-wrap">{m.text}</p>
-                  </div>
-                </div>
-              )
-            )}
-            {loading && (
-              <div className="flex justify-start">
-                <div className="inline-flex items-center gap-2 rounded-2xl rounded-bl-sm bg-amber-50 px-3 py-2 border border-amber-200">
-                  <span className="text-amber-800 text-xs">Đang trả lời</span>
-                  <div className="flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-bounce" style={{ animationDelay: '120ms' }} />
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-bounce" style={{ animationDelay: '240ms' }} />
-                  </div>
-                </div>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
+          <div className="flex items-center gap-1">
+            <button type="button" className="p-1 rounded-full hover:bg-primary-500" onClick={onToggleExpand} aria-label="Thu nhỏ/Phóng to">
+              {isExpanded ? <FiMinimize2 className="w-4 h-4" /> : <FiMaximize2 className="w-4 h-4" />}
+            </button>
+            <button type="button" className="p-1 rounded-full hover:bg-primary-500" onClick={onClose} aria-label="Đóng">
+              <FiX className="w-4 h-4" />
+            </button>
           </div>
+        </div>
 
-          {/* Nút hội thoại mới khi chưa expand */}
-          {!isExpanded && (
-            <div className="px-3 pb-1">
+        <div className="flex flex-1 min-h-0">
+          {/* Sidebar: danh sách hội thoại (chỉ khi expanded) */}
+          {isExpanded && (
+            <div className="w-48 border-r border-gray-200 bg-gray-50 flex flex-col shrink-0">
               <button
                 type="button"
                 onClick={handleNewConversation}
-                className="flex items-center gap-2 text-xs text-primary-600 hover:text-primary-700 font-medium"
+                className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium text-primary-600 hover:bg-primary-50 border-b border-gray-200"
               >
-                <FiPlus className="w-3.5 h-3.5" />
+                <FiPlus className="w-4 h-4" />
                 Hội thoại mới
               </button>
+              <div className="flex-1 overflow-y-auto">
+                {loadingList ? (
+                  <p className="p-3 text-xs text-gray-500">Đang tải...</p>
+                ) : conversations.length === 0 ? (
+                  <p className="p-3 text-xs text-gray-500">Chưa có hội thoại</p>
+                ) : (
+                  conversations.map((c) => (
+                    <div
+                      key={c._id}
+                      onClick={() => {
+                        if (loading) {
+                          setBlockedActionMessage('Chatbot đang trả lời. Vui lòng đợi trả lời xong rồi hãy chuyển sang hội thoại khác.');
+                          return;
+                        }
+                        setCurrentId(c._id);
+                      }}
+                      className={`group flex items-center gap-2 px-3 py-2 text-left cursor-pointer border-b border-gray-100 ${currentId === c._id ? 'bg-primary-50 text-primary-700' : 'hover:bg-gray-100'
+                        }`}
+                    >
+                      <FiMessageCircle className="w-4 h-4 shrink-0 text-gray-400" />
+                      <span className="flex-1 truncate text-sm">{c.title}</span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          if (loading) {
+                            e.stopPropagation();
+                            setBlockedActionMessage('Chatbot đang trả lời. Vui lòng đợi trả lời xong rồi hãy xóa hội thoại.');
+                            return;
+                          }
+                          handleDeleteConversation(c._id, e);
+                        }}
+                        className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-100 text-red-600 shrink-0"
+                        aria-label="Xóa hội thoại"
+                      >
+                        <FiTrash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           )}
 
-          {/* Input */}
-          <div className="border-t border-gray-200 px-3 py-2 bg-white flex items-center gap-2 shrink-0">
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
-              placeholder="Nhập tin nhắn..."
-              disabled={loading}
-              className="flex-1 text-sm px-3 py-2 rounded-full border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-            />
-            <button
-              type="button"
-              onClick={handleSend}
-              disabled={loading || !input.trim()}
-              className="w-9 h-9 rounded-full bg-primary-600 text-white flex items-center justify-center hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
-              aria-label="Gửi"
-            >
-              <FiSend className="w-4 h-4" />
-            </button>
+          <div className="flex flex-col flex-1 min-w-0">
+            {/* Khu vực tin nhắn */}
+            <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3 text-sm bg-gray-50">
+              {messages.length === 0 && !currentId && (
+                <div className="flex justify-start">
+                  <div className="max-w-[85%] rounded-2xl rounded-bl-sm bg-white px-3 py-2 shadow-sm border border-gray-200">
+                    <p className="text-gray-800">Xin chào! HDQTShop có thể hỗ trợ gì cho bạn hôm nay?</p>
+                  </div>
+                </div>
+              )}
+              {messages.map((m, i) =>
+                m.role === 'user' ? (
+                  <div key={i} className="flex justify-end">
+                    <div className="max-w-[85%] rounded-2xl rounded-br-sm bg-primary-600 text-white px-3 py-2">
+                      <p className="text-sm">{m.text}</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div key={i} className="flex justify-start">
+                    <div className="max-w-[85%] rounded-2xl rounded-bl-sm bg-white px-3 py-2 shadow-sm border border-gray-200">
+                      <p className="text-gray-800 whitespace-pre-wrap">{m.text}</p>
+                    </div>
+                  </div>
+                )
+              )}
+              {loading && (
+                <div className="flex justify-start">
+                  <div className="inline-flex items-center gap-2 rounded-2xl rounded-bl-sm bg-amber-50 px-3 py-2 border border-amber-200">
+                    <span className="text-amber-800 text-xs">Đang trả lời</span>
+                    <div className="flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-bounce" style={{ animationDelay: '120ms' }} />
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-bounce" style={{ animationDelay: '240ms' }} />
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+
+            {/* Nút hội thoại mới khi chưa expand */}
+            {!isExpanded && (
+              <div className="px-3 pb-1">
+                <button
+                  type="button"
+                  onClick={handleNewConversation}
+                  className="flex items-center gap-2 text-xs text-primary-600 hover:text-primary-700 font-medium"
+                >
+                  <FiPlus className="w-3.5 h-3.5" />
+                  Hội thoại mới
+                </button>
+              </div>
+            )}
+
+            {/* Input */}
+            <div className="border-t border-gray-200 px-3 py-2 bg-white flex items-center gap-2 shrink-0">
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
+                placeholder="Nhập tin nhắn..."
+                disabled={loading}
+                className="flex-1 text-sm px-3 py-2 rounded-full border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              />
+              <button
+                type="button"
+                onClick={handleSend}
+                disabled={loading || !input.trim()}
+                className="w-9 h-9 rounded-full bg-primary-600 text-white flex items-center justify-center hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                aria-label="Gửi"
+              >
+                <FiSend className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
+        {blockedActionMessage && (
+          <ConfirmModal
+            isOpen={!!blockedActionMessage}
+            title="Không thể thực hiện"
+            message={blockedActionMessage}
+            confirmLabel="Đã hiểu"
+            cancelLabel="Đóng"
+            onConfirm={() => setBlockedActionMessage(null)}
+            onCancel={() => setBlockedActionMessage(null)}
+          />
+        )}
       </div>
-    </div>
+    </>
   );
 };
 
 export default ChatPanel;
+

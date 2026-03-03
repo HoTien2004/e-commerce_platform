@@ -93,5 +93,11 @@ export const orderService = {
     const response = await api.put<OrderResponse>(API_ENDPOINTS.UPDATE_ORDER_STATUS(orderId), data);
     return response.data;
   },
+
+  // Delete order (admin only)
+  deleteOrder: async (orderId: string): Promise<{ success: boolean; message: string }> => {
+    const response = await api.delete<{ success: boolean; message: string }>(API_ENDPOINTS.DELETE_ORDER(orderId));
+    return response.data;
+  },
 };
 

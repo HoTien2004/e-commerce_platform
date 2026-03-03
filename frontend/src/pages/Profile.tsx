@@ -9,6 +9,7 @@ import toast from 'react-hot-toast';
 import { FiUser, FiMail, FiPhone, FiCamera, FiTrash2, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
 import { scrollToTop } from '../utils/scrollToTop';
 import AddressManager from '../components/AddressManager';
+import ConfirmModal from '../components/Modal/ConfirmModal';
 
 const profileSchema = z.object({
   firstName: z.string().min(1, 'Vui lòng nhập tên'),
@@ -305,34 +306,14 @@ const Profile = () => {
                     {isUploadingAvatar ? 'Đang tải...' : 'Thay đổi avatar'}
                   </label>
                   {user?.avatar && (
-                    confirmDeleteAvatar ? (
-                      <span className="flex items-center gap-2">
-                        <span className="text-sm text-gray-600">Xóa avatar?</span>
-                        <button
-                          type="button"
-                          onClick={handleDeleteAvatar}
-                          className="text-sm py-1.5 px-3 text-white bg-red-600 hover:bg-red-700 rounded-lg"
-                        >
-                          Xác nhận
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setConfirmDeleteAvatar(false)}
-                          className="text-sm py-1.5 px-3 text-gray-600 hover:bg-gray-100 rounded-lg"
-                        >
-                          Hủy
-                        </button>
-                      </span>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => setConfirmDeleteAvatar(true)}
-                        className="btn-ghost text-red-600 hover:text-red-700 hover:bg-red-50"
-                      >
-                        <FiTrash2 className="w-4 h-4 mr-2" />
-                        Xóa avatar
-                      </button>
-                    )
+                    <button
+                      type="button"
+                      onClick={() => setConfirmDeleteAvatar(true)}
+                      className="btn-ghost text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <FiTrash2 className="w-4 h-4 mr-2" />
+                      Xóa avatar
+                    </button>
                   )}
                 </div>
               </div>
@@ -561,6 +542,16 @@ const Profile = () => {
           </div>
         )}
       </div>
+
+      <ConfirmModal
+        isOpen={confirmDeleteAvatar}
+        title="Xóa avatar"
+        message="Bạn có chắc chắn muốn xóa avatar hiện tại? Hành động này không thể hoàn tác."
+        confirmLabel="Xóa"
+        cancelLabel="Hủy"
+        onConfirm={handleDeleteAvatar}
+        onCancel={() => setConfirmDeleteAvatar(false)}
+      />
     </div>
   );
 };

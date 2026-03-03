@@ -6,7 +6,6 @@ import { z } from 'zod';
 import { FiMail, FiLock, FiLogIn } from 'react-icons/fi';
 import { useAuthStore } from '../store/authStore';
 import { authService } from '../services/authService';
-import { resetVerification, markAsVerified } from '../components/ProtectedRoute';
 import toast from 'react-hot-toast';
 
 const loginSchema = z.object({
@@ -45,19 +44,12 @@ const Login = () => {
           return;
         }
 
-        // Reset verification flag before login
-        resetVerification();
-
         // Set auth state
         setAuth(
           response.data.user,
           response.data.accessToken,
           response.data.refreshToken
         );
-
-        // Mark as verified since we just logged in successfully
-        // This prevents ProtectedRoute from re-verifying immediately
-        markAsVerified();
 
         toast.success('Đăng nhập thành công!');
 

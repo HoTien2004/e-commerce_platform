@@ -86,9 +86,7 @@ const OrderDetail = () => {
   };
 
   const handleStatusChange = async (newStatus: string) => {
-    if (!order || !confirm(`Bạn có chắc muốn cập nhật trạng thái đơn hàng thành "${newStatus}"?`)) {
-      return;
-    }
+    if (!order) return;
 
     try {
       setIsUpdating(true);

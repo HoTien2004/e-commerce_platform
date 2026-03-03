@@ -1,5 +1,5 @@
 import express from "express";
-import { createOrder, getOrders, getOrderById, updateOrderStatus, cancelOrder } from "../controllers/orderController";
+import { createOrder, getOrders, getOrderById, updateOrderStatus, cancelOrder, deleteOrder } from "../controllers/orderController";
 import { verifyToken } from "../middleware/authMiddleware";
 
 const orderRouter = express.Router();
@@ -381,6 +381,36 @@ orderRouter.put("/:orderId/status", verifyToken, updateOrderStatus);
  *         description: Internal server error
  */
 orderRouter.put("/:orderId/cancel", verifyToken, cancelOrder);
+
+/**
+ * @swagger
+ * /api/orders/{orderId}:
+ *   delete:
+ *     summary: "Delete order (Admin only)"
+ *     description: Permanently delete an order by ID. Only admin can perform this action.
+ *     tags: [Orders]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: orderId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: "Order ID"
+ *     responses:
+ *       200:
+ *         description: Order deleted successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Access denied (admin only)
+ *       404:
+ *         description: Order not found
+ *       500:
+ *         description: Internal server error
+ */
+orderRouter.delete("/:orderId", verifyToken, deleteOrder);
 
 export default orderRouter;
 

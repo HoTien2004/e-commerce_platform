@@ -1291,13 +1291,10 @@ const getAllUsers = async (req: Request, res: Response): Promise<Response> => {
 
         // Build query
         const query: any = {};
-        
-        // Filter by role
+
+        // Filter by role (optional)
         if (role && ['user', 'admin'].includes(role as string)) {
             query.role = role;
-        } else {
-            // Default to 'user' if not specified
-            query.role = 'user';
         }
         
         // Search by email, firstName, lastName
@@ -1345,6 +1342,109 @@ const getAllUsers = async (req: Request, res: Response): Promise<Response> => {
     }
 };
 
+// Delete user by id (admin only)
+const deleteUserById = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const adminId = (req as any).userId;
+        const { id } = req.params;
+
+        if (!adminId) {
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized"
+            });
+        }
+
+        const admin = await userModel.findById(adminId);
+        if (!admin || admin.role !== "admin") {
+            return res.status(403).json({
+                success: false,
+                message: "Access denied. Admin only."
+            });
+        }
+
+        const user = await userModel.findById(id);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        await userModel.findByIdAndDelete(id);
+
+        return res.status(200).json({
+            success: true,
+            message: "User deleted successfully"
+        });
+    } catch (error: any) {
+        console.error("Error deleting user:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error",
+            error: error.message
+        });
+    }
+};
+
+// Update user role (admin only)
+const updateUserRoleById = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const adminId = (req as any).userId;
+        const { id } = req.params;
+        const { role } = req.body;
+
+        if (!adminId) {
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized"
+            });
+        }
+
+        const admin = await userModel.findById(adminId);
+        if (!admin || admin.role !== "admin") {
+            return res.status(403).json({
+                success: false,
+                message: "Access denied. Admin only."
+            });
+        }
+
+        const validRoles = ["user", "admin"];
+        if (!role || !validRoles.includes(role)) {
+            return res.status(400).json({
+                success: false,
+                message: `Invalid role. Must be one of: ${validRoles.join(", ")}`
+            });
+        }
+
+        const user = await userModel
+            .findByIdAndUpdate(id, { role }, { new: true })
+            .select("-password -refreshToken -otp -resetOTP");
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "User role updated successfully",
+            data: {
+                user
+            }
+        });
+    } catch (error: any) {
+        console.error("Error updating user role:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error",
+            error: error.message
+        });
+    }
+};
+
 export {
     loginUser,
     logoutUser,
@@ -1364,5 +1464,7 @@ export {
     updateAddress,
     deleteAddress,
     setDefaultAddress,
-    getAllUsers
+    getAllUsers,
+    deleteUserById,
+    updateUserRoleById
 };

@@ -6,6 +6,7 @@ import type { Order } from '../types/order';
 import { FiPackage, FiClock, FiTruck, FiCheckCircle, FiXCircle, FiRefreshCw, FiEye } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import { scrollToTop } from '../utils/scrollToTop';
+import ConfirmModal from '../components/Modal/ConfirmModal';
 
 const statusConfig = {
     pending: {
@@ -262,30 +263,12 @@ const Orders = () => {
                                                 Xem chi tiết
                                             </Link>
                                             {order.orderStatus === 'pending' && (
-                                                confirmCancelOrderId === order._id ? (
-                                                    <span className="flex items-center gap-2">
-                                                        <span className="text-xs text-gray-600">Hủy đơn?</span>
-                                                        <button
-                                                            onClick={() => handleCancelOrder(order._id)}
-                                                            className="px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm font-medium"
-                                                        >
-                                                            Xác nhận
-                                                        </button>
-                                                        <button
-                                                            onClick={() => setConfirmCancelOrderId(null)}
-                                                            className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm"
-                                                        >
-                                                            Hủy
-                                                        </button>
-                                                    </span>
-                                                ) : (
-                                                    <button
-                                                        onClick={() => setConfirmCancelOrderId(order._id)}
-                                                        className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
-                                                    >
-                                                        Hủy đơn
-                                                    </button>
-                                                )
+                                                <button
+                                                    onClick={() => setConfirmCancelOrderId(order._id)}
+                                                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+                                                >
+                                                    Hủy đơn
+                                                </button>
                                             )}
                                         </div>
                                     </div>
@@ -322,6 +305,16 @@ const Orders = () => {
                     </div>
                 )}
             </div>
+
+            <ConfirmModal
+                isOpen={!!confirmCancelOrderId}
+                title="Hủy đơn hàng"
+                message="Bạn có chắc chắn muốn hủy đơn hàng này? Hành động này không thể hoàn tác."
+                confirmLabel="Hủy đơn"
+                cancelLabel="Quay lại"
+                onConfirm={() => confirmCancelOrderId && handleCancelOrder(confirmCancelOrderId)}
+                onCancel={() => setConfirmCancelOrderId(null)}
+            />
         </div>
     );
 };

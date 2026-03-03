@@ -472,15 +472,6 @@ const updateOrderStatus = async (req: Request, res: Response): Promise<Response>
             });
         }
 
-        // Prevent changing status FROM cancelled or returned (but allow changing TO these statuses)
-        if ((order.orderStatus === 'cancelled' || order.orderStatus === 'returned') &&
-            orderStatus !== order.orderStatus) {
-            return res.status(400).json({
-                success: false,
-                message: `Cannot change status of ${order.orderStatus} order`
-            });
-        }
-
         const previousStatus = order.orderStatus;
 
         // Update order status
@@ -606,11 +597,57 @@ const cancelOrder = async (req: Request, res: Response): Promise<Response> => {
     }
 };
 
+// Delete order (admin only)
+const deleteOrder = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const userId = (req as any).userId;
+        const { orderId } = req.params;
+
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized"
+            });
+        }
+
+        const user = await userModel.findById(userId);
+        if (!user || user.role !== 'admin') {
+            return res.status(403).json({
+                success: false,
+                message: "Access denied. Admin only."
+            });
+        }
+
+        const order = await orderModel.findById(orderId);
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: "Order not found"
+            });
+        }
+
+        await orderModel.findByIdAndDelete(orderId);
+
+        return res.status(200).json({
+            success: true,
+            message: "Order deleted successfully"
+        });
+    } catch (error: any) {
+        console.error("Error deleting order:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error",
+            error: error.message
+        });
+    }
+};
+
 export {
     createOrder,
     getOrders,
     getOrderById,
     updateOrderStatus,
-    cancelOrder
+    cancelOrder,
+    deleteOrder
 };
 

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { reviewService, type Review } from '../services/reviewService';
 import { FiStar, FiTrash2, FiSearch, FiEye, FiFilter, FiX } from 'react-icons/fi';
 import toast from 'react-hot-toast';
+import ConfirmModal from '../components/ConfirmModal';
 
 const Reviews = () => {
   const navigate = useNavigate();
@@ -15,6 +16,7 @@ const Reviews = () => {
   const [productIdFilter, setProductIdFilter] = useState('');
   const [userIdFilter, setUserIdFilter] = useState('');
   const [userRatingsMap, setUserRatingsMap] = useState<Map<string, Map<string, number>>>(new Map()); // productId -> userId -> rating
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
     loadReviews();
@@ -101,10 +103,6 @@ const Reviews = () => {
   };
 
   const handleDelete = async (reviewId: string) => {
-    if (!confirm('Bạn có chắc muốn xóa đánh giá này?')) {
-      return;
-    }
-
     try {
       const response = await reviewService.deleteReview(reviewId);
       if (response.success) {
@@ -112,6 +110,7 @@ const Reviews = () => {
         loadReviews();
         // Refresh user ratings map
         buildUserRatingsMap();
+        setConfirmDeleteId(null);
       }
     } catch (error: any) {
       console.error('Error deleting review:', error);
@@ -374,7 +373,7 @@ const Reviews = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <button
-                          onClick={() => handleDelete(review._id)}
+                          onClick={() => setConfirmDeleteId(review._id)}
                           className="text-red-600 hover:text-red-900 transition-colors"
                           title="Xóa đánh giá"
                         >
@@ -411,6 +410,17 @@ const Reviews = () => {
                 </div>
               </div>
             )}
+
+      {/* Confirm delete modal */}
+      <ConfirmModal
+        isOpen={!!confirmDeleteId}
+        title="Xóa đánh giá"
+        message="Bạn có chắc chắn muốn xóa đánh giá này? Hành động này không thể hoàn tác."
+        confirmLabel="Xóa"
+        cancelLabel="Hủy"
+        onConfirm={() => confirmDeleteId && handleDelete(confirmDeleteId)}
+        onCancel={() => setConfirmDeleteId(null)}
+      />
           </>
         )}
       </div>

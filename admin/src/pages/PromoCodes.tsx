@@ -3,12 +3,14 @@ import { promoCodeService, type PromoCode } from '../services/promoCodeService';
 import { FiPlus, FiEdit, FiTrash2 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import PromoCodeModal from '../components/PromoCodeModal';
+import ConfirmModal from '../components/ConfirmModal';
 
 const PromoCodes = () => {
   const [promoCodes, setPromoCodes] = useState<PromoCode[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPromoCode, setEditingPromoCode] = useState<PromoCode | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
     loadPromoCodes();
@@ -29,13 +31,10 @@ const PromoCodes = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Bạn có chắc chắn muốn xóa mã khuyến mãi này?')) {
-      return;
-    }
-
     try {
       await promoCodeService.deletePromoCode(id);
       toast.success('Xóa mã khuyến mãi thành công!');
+      setConfirmDeleteId(null);
       loadPromoCodes();
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Lỗi khi xóa mã khuyến mãi');
@@ -167,7 +166,7 @@ const PromoCodes = () => {
                             <FiEdit className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => handleDelete(promoCode._id)}
+                            onClick={() => setConfirmDeleteId(promoCode._id)}
                             className="text-red-600 hover:text-red-900"
                           >
                             <FiTrash2 className="w-4 h-4" />
@@ -194,6 +193,17 @@ const PromoCodes = () => {
           onSuccess={loadPromoCodes}
         />
       )}
+
+      {/* Confirm delete modal */}
+      <ConfirmModal
+        isOpen={!!confirmDeleteId}
+        title="Xóa mã khuyến mãi"
+        message="Bạn có chắc chắn muốn xóa mã khuyến mãi này? Hành động này không thể hoàn tác."
+        confirmLabel="Xóa"
+        cancelLabel="Hủy"
+        onConfirm={() => confirmDeleteId && handleDelete(confirmDeleteId)}
+        onCancel={() => setConfirmDeleteId(null)}
+      />
     </div>
   );
 };

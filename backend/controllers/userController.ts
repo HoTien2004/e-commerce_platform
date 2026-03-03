@@ -2,15 +2,20 @@ import type { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import validator from "validator";
+import crypto from "crypto";
 import userModel from "../models/userModel";
 import { generateOTP, saveOTP, verifyOTP, deleteOTP } from "../services/otpService";
 import { sendOTPEmail, sendResetPasswordEmail } from "../services/emailService";
 import { generateResetOTP, saveResetOTP, verifyResetOTP, deleteResetOTP, isEmailVerifiedForReset } from "../services/resetPasswordService";
 import { uploadImageFromBuffer, deleteImage } from "../services/cloudinaryService";
 import otpModel from "../models/otpModel";
+import { OAuth2Client } from "google-auth-library";
 
 const JWT_SECRET = process.env.JWT_SECRET || "default_secret";
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || "default_refresh_secret";
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "";
+
+const googleClient = GOOGLE_CLIENT_ID ? new OAuth2Client(GOOGLE_CLIENT_ID) : null;
 
 // Validate password strength
 const validatePasswordStrength = (password: string): { isValid: boolean; message: string } => {
@@ -146,6 +151,103 @@ const loginUser = async (req: Request, res: Response): Promise<Response> => {
         });
     }
 }
+
+// Login with Google (ID token)
+const loginWithGoogle = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const { idToken } = req.body as { idToken?: string };
+
+        if (!idToken || typeof idToken !== "string") {
+            return res.status(400).json({
+                success: false,
+                message: "Thiếu idToken"
+            });
+        }
+
+        if (!GOOGLE_CLIENT_ID || !googleClient) {
+            return res.status(500).json({
+                success: false,
+                message: "Google OAuth chưa được cấu hình. Vui lòng thêm GOOGLE_CLIENT_ID vào biến môi trường."
+            });
+        }
+
+        const ticket = await googleClient.verifyIdToken({
+            idToken,
+            audience: GOOGLE_CLIENT_ID
+        });
+
+        const payload = ticket.getPayload();
+        const email = payload?.email;
+
+        if (!email) {
+            return res.status(400).json({
+                success: false,
+                message: "Không lấy được email từ Google"
+            });
+        }
+
+        const fullName = (payload?.name || "").trim();
+        const picture = payload?.picture || null;
+
+        let user = await userModel.findOne({ email } as any);
+
+        // Nếu chưa có user => tạo mới
+        if (!user) {
+            const parts = fullName.split(/\s+/).filter(Boolean);
+            const firstName = parts[0] || "User";
+            const lastName = parts.slice(1).join(" ") || firstName || "User";
+
+            // User schema đang require password => tạo mật khẩu random (không dùng để login)
+            const randomPassword = crypto.randomBytes(32).toString("hex");
+            const hashedPassword = await bcrypt.hash(randomPassword, 10);
+
+            user = await userModel.create({
+                firstName,
+                lastName,
+                email,
+                password: hashedPassword,
+                avatar: picture
+            } as any);
+        } else if (!user.avatar && picture) {
+            // Nếu đã có user (đăng ký local) nhưng chưa có avatar thì set avatar theo Google
+            user.avatar = picture as any;
+        }
+
+        // Create tokens
+        const accessToken = createAccessToken(user._id.toString());
+        const refreshToken = createRefreshToken(user._id.toString());
+
+        // Save refresh token to database
+        user.refreshToken = refreshToken as any;
+        await user.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Đăng nhập Google thành công",
+            data: {
+                user: {
+                    id: user._id,
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    email: user.email,
+                    gender: user.gender,
+                    phone: user.phone,
+                    address: user.address,
+                    avatar: user.avatar,
+                    role: user.role
+                },
+                accessToken,
+                refreshToken
+            }
+        });
+    } catch (error: any) {
+        console.error("Google login error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Đăng nhập Google thất bại"
+        });
+    }
+};
 
 const logoutUser = async (req: Request, res: Response): Promise<Response> => {
     try {
@@ -1447,6 +1549,7 @@ const updateUserRoleById = async (req: Request, res: Response): Promise<Response
 
 export {
     loginUser,
+    loginWithGoogle,
     logoutUser,
     registerUser,
     verifyOTPAndRegister,

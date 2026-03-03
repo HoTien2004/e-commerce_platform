@@ -9,6 +9,7 @@ import { cartService } from '../../services/cartService';
 import toast from 'react-hot-toast';
 import { FiEye, FiEyeOff } from 'react-icons/fi';
 import Modal from './Modal';
+import { GoogleLogin } from '@react-oauth/google';
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Email không hợp lệ' }),
@@ -89,6 +90,40 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: AuthModalProps) =
     } catch (error) {
       console.error('Error merging local cart to server:', error);
       // Không chặn đăng nhập nếu sync giỏ hàng lỗi
+    }
+  };
+
+  const handleGoogleLogin = async (idToken?: string) => {
+    if (!idToken) {
+      toast.error('Không lấy được token Google');
+      return;
+    }
+    setIsLoading(true);
+    setError('');
+    try {
+      const response = await authService.loginWithGoogle(idToken);
+      if (response.success) {
+        setAuth(
+          response.data.user,
+          response.data.accessToken,
+          response.data.refreshToken
+        );
+
+        mergeLocalCartToServer().catch(() => { });
+
+        toast.success('Đăng nhập Google thành công!');
+        forceClose();
+      } else {
+        const errorMessage = response.message || 'Đăng nhập Google thất bại';
+        setError(errorMessage);
+        toast.error(errorMessage);
+      }
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || 'Đăng nhập Google thất bại. Vui lòng thử lại.';
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -257,6 +292,20 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: AuthModalProps) =
     registerForm.clearErrors();
   };
 
+  const forceClose = () => {
+    onClose();
+    setMode(initialMode);
+    setOtp('');
+    setEmail('');
+    setShowPassword(false);
+    setShowConfirmPassword(false);
+    setError('');
+    loginForm.reset();
+    loginForm.clearErrors();
+    registerForm.reset();
+    registerForm.clearErrors();
+  };
+
   if (mode === 'verify') {
     return (
       <Modal
@@ -409,17 +458,17 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: AuthModalProps) =
               </div>
             </div>
 
-            <button
-              type="button"
-              className="w-full flex items-center justify-center gap-3 border border-gray-300 rounded-lg px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-            >
-              <img
-                src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
-                alt="Google"
-                className="w-5 h-5"
+            <div className="w-full">
+              <GoogleLogin
+                onSuccess={(credentialResponse) => handleGoogleLogin(credentialResponse.credential)}
+                onError={() => toast.error('Đăng nhập Google không thành công. Vui lòng thử lại.')}
+                useOneTap={false}
+                theme="outline"
+                shape="pill"
+                text="signin_with"
+                width="100%"
               />
-              <span>Đăng nhập với Google</span>
-            </button>
+            </div>
 
             <div className="flex items-center justify-start">
               <a
@@ -627,17 +676,17 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: AuthModalProps) =
             </div>
           </div>
 
-          <button
-            type="button"
-            className="w-full flex items-center justify-center gap-3 border border-gray-300 rounded-lg px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-          >
-            <img
-              src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
-              alt="Google"
-              className="w-5 h-5"
+          <div className="w-full">
+            <GoogleLogin
+              onSuccess={(credentialResponse) => handleGoogleLogin(credentialResponse.credential)}
+              onError={() => toast.error('Đăng nhập Google không thành công. Vui lòng thử lại.')}
+              useOneTap={false}
+              theme="outline"
+              shape="pill"
+              text="signup_with"
+              width="100%"
             />
-            <span>Đăng ký / Đăng nhập với Google</span>
-          </button>
+          </div>
         </form>
       </div>
     </Modal>

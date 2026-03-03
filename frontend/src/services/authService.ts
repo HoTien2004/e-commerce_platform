@@ -69,6 +69,12 @@ export const authService = {
     return response.data;
   },
 
+  // Login with Google
+  loginWithGoogle: async (idToken: string): Promise<AuthResponse> => {
+    const response = await api.post(API_ENDPOINTS.GOOGLE_LOGIN, { idToken });
+    return response.data;
+  },
+
   // Logout
   logout: async () => {
     const response = await api.post(API_ENDPOINTS.LOGOUT);

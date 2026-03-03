@@ -1,5 +1,5 @@
 import express from "express";
-import { loginUser, logoutUser, registerUser, verifyOTPAndRegister, resendOTP, forgotPassword, verifyResetPasswordOTP, resetPassword, refreshAccessToken, getUserProfile, updateUserProfile, changePassword, uploadAvatar, deleteAvatar, addAddress, updateAddress, deleteAddress, setDefaultAddress, getAllUsers, deleteUserById, updateUserRoleById } from "../controllers/userController";
+import { loginUser, loginWithGoogle, logoutUser, registerUser, verifyOTPAndRegister, resendOTP, forgotPassword, verifyResetPasswordOTP, resetPassword, refreshAccessToken, getUserProfile, updateUserProfile, changePassword, uploadAvatar, deleteAvatar, addAddress, updateAddress, deleteAddress, setDefaultAddress, getAllUsers, deleteUserById, updateUserRoleById } from "../controllers/userController";
 import { verifyToken } from "../middleware/authMiddleware";
 import { upload } from "../middleware/uploadMiddleware";
 
@@ -70,6 +70,14 @@ const userRouter = express.Router();
  *           type: string
  *         password:
  *           type: string
+ *     GoogleLoginRequest:
+ *       type: object
+ *       required:
+ *         - idToken
+ *       properties:
+ *         idToken:
+ *           type: string
+ *           description: Google ID token (JWT) from Google Identity Services
  */
 
 /**
@@ -350,6 +358,33 @@ userRouter.post("/resend-otp", resendOTP);
  *         description: Invalid email or password
  */
 userRouter.post("/login", loginUser);
+
+/**
+ * @swagger
+ * /api/user/google:
+ *   post:
+ *     summary: Login with Google
+ *     description: Login/Register with Google using an ID token, then return accessToken & refreshToken like normal login.
+ *     tags: [User]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/GoogleLoginRequest'
+ *           examples:
+ *             default:
+ *               value:
+ *                 idToken: "eyJhbGciOiJSUzI1NiIsImtpZCI6Ii4uLiJ9..."
+ *     responses:
+ *       200:
+ *         description: Google login successful
+ *       400:
+ *         description: Missing/invalid idToken
+ *       500:
+ *         description: Server error or Google OAuth not configured
+ */
+userRouter.post("/google", loginWithGoogle);
 
 /**
  * @swagger

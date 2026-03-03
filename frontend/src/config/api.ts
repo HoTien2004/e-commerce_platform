@@ -7,6 +7,7 @@ export const API_ENDPOINTS = {
   VERIFY_OTP: '/user/verify-otp',
   RESEND_OTP: '/user/resend-otp',
   LOGIN: '/user/login',
+  GOOGLE_LOGIN: '/user/google',
   LOGOUT: '/user/logout',
   REFRESH_TOKEN: '/user/refresh-token',
 

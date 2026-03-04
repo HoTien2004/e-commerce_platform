@@ -38,8 +38,12 @@ const Reviews = () => {
         const ratingsMap = new Map<string, Map<string, number>>();
         response.data.reviews.forEach((review: Review) => {
           if (review.rating !== null && review.rating !== undefined) {
-            const productId = review.productId._id;
-            const userId = review.userId._id;
+            const productId = (review as any).productId?._id as string | undefined;
+            const userId = (review as any).userId?._id as string | undefined;
+            
+            if (!productId || !userId) {
+              return; // Skip reviews with missing product or user (data may have been deleted)
+            }
             
             if (!ratingsMap.has(productId)) {
               ratingsMap.set(productId, new Map());
@@ -280,30 +284,44 @@ const Reviews = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {reviews.map((review) => (
+                  {reviews.map((review) => {
+                    const product = (review as any).productId ?? null;
+                    const user = (review as any).userId ?? null;
+
+                    const hasProductImage =
+                      product &&
+                      Array.isArray((product as any).images) &&
+                      (product as any).images.length > 0;
+                    const primaryImage =
+                      hasProductImage
+                        ? (product as any).images.find((img: any) => img.isPrimary) ||
+                          (product as any).images[0]
+                        : null;
+
+                    return (
                     <tr key={review._id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-3">
-                          {review.userId.avatar ? (
+                          {user?.avatar ? (
                             <img
-                              src={review.userId.avatar}
-                              alt={review.userId.firstName}
+                              src={user.avatar}
+                              alt={user.firstName}
                               className="w-10 h-10 rounded-full object-cover"
                             />
                           ) : (
                             <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
                               <span className="text-primary-600 font-semibold text-sm">
-                                {review.userId.firstName.charAt(0)}
-                                {review.userId.lastName.charAt(0)}
+                                {(user?.firstName || '?').charAt(0)}
+                                {(user?.lastName || '').charAt(0)}
                               </span>
                             </div>
                           )}
                           <div>
                             <p className="text-sm font-medium text-gray-900">
-                              {review.userId.firstName} {review.userId.lastName}
+                              {user?.firstName} {user?.lastName}
                             </p>
-                            <p className="text-xs text-gray-500">{review.userId.email}</p>
-                            {review.isVerifiedPurchase && (
+                            <p className="text-xs text-gray-500">{user?.email}</p>
+                            {review.isVerifiedPurchase && user && (
                               <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 mt-1">
                                 Đã mua
                               </span>
@@ -313,27 +331,38 @@ const Reviews = () => {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          {review.productId.images?.[0] && (
+                          {primaryImage && primaryImage.url ? (
                             <img
-                              src={review.productId.images.find(img => img.isPrimary)?.url || review.productId.images[0].url}
-                              alt={review.productId.name}
+                              src={primaryImage.url}
+                              alt={product?.name || 'Sản phẩm'}
                               className="w-12 h-12 rounded object-cover"
                             />
+                          ) : (
+                            <div className="w-12 h-12 rounded bg-gray-100 flex items-center justify-center text-xs text-gray-400">
+                              No image
+                            </div>
                           )}
                           <div>
                             <p className="text-sm font-medium text-gray-900 line-clamp-1">
-                              {review.productId.name}
+                              {product?.name || 'Sản phẩm đã bị xóa'}
                             </p>
-                            <p className="text-xs text-gray-500">{review.productId.slug}</p>
+                            {product?.slug && (
+                              <p className="text-xs text-gray-500">{product.slug}</p>
+                            )}
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         {(() => {
                           // If review doesn't have rating, get it from userRatingsMap
+                          const productIdForMap = (review as any).productId?._id as string | undefined;
+                          const userIdForMap = (review as any).userId?._id as string | undefined;
+
                           const displayRating = review.rating !== null && review.rating !== undefined
                             ? review.rating
-                            : (userRatingsMap.get(review.productId._id)?.get(review.userId._id) || null);
+                            : (productIdForMap && userIdForMap
+                                ? (userRatingsMap.get(productIdForMap)?.get(userIdForMap) || null)
+                                : null);
                           
                           if (displayRating === null) {
                             return <span className="text-sm text-gray-400">Chưa đánh giá</span>;
@@ -379,7 +408,7 @@ const Reviews = () => {
                         </button>
                       </td>
                     </tr>
-                  ))}
+                  )})}
                 </tbody>
               </table>
             </div>

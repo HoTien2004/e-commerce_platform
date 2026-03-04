@@ -81,17 +81,19 @@ export const buildVnpParams = (order: OrderLike, req: Request) => {
         );
     }
 
-    const createDate = new Date();
-    const yyyy = createDate.getFullYear().toString();
-    const MM = (createDate.getMonth() + 1).toString().padStart(2, "0");
-    const dd = createDate.getDate().toString().padStart(2, "0");
-    const HH = createDate.getHours().toString().padStart(2, "0");
-    const mm = createDate.getMinutes().toString().padStart(2, "0");
-    const ss = createDate.getSeconds().toString().padStart(2, "0");
+    // VNPay yêu cầu thời gian theo GMT+7.
+    // Render/host thường chạy ở UTC, nên cần cộng thêm 7 tiếng để tránh bị coi là "quá thời gian".
+    const nowVN = new Date(Date.now() + 7 * 60 * 60 * 1000);
+    const yyyy = nowVN.getFullYear().toString();
+    const MM = (nowVN.getMonth() + 1).toString().padStart(2, "0");
+    const dd = nowVN.getDate().toString().padStart(2, "0");
+    const HH = nowVN.getHours().toString().padStart(2, "0");
+    const mm = nowVN.getMinutes().toString().padStart(2, "0");
+    const ss = nowVN.getSeconds().toString().padStart(2, "0");
     const vnp_CreateDate = `${yyyy}${MM}${dd}${HH}${mm}${ss}`;
 
     // vnp_ExpireDate: Bắt buộc theo tài liệu VNPay - thời gian hết hạn thanh toán (GMT+7)
-    const expireDate = new Date(createDate.getTime() + 15 * 60 * 1000); // +15 phút
+    const expireDate = new Date(nowVN.getTime() + 15 * 60 * 1000); // +15 phút theo giờ VN
     const vnp_ExpireDate =
         expireDate.getFullYear().toString() +
         (expireDate.getMonth() + 1).toString().padStart(2, "0") +

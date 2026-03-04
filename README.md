@@ -236,9 +236,9 @@ Sau khi chỉnh `.env`, restart backend + frontend.
 
 ## Demo / Product link
 
-- **Demo (tạm)**: `[Đường dẫn demo sẽ được cập nhật tại đây](https://example.com/)`
-
-Bạn có thể thay bằng link deploy thực tế (Vercel/Netlify/Render/Nginx…).
+- **Frontend (User)**: `https://ecommerceplatform-fe.netlify.app`
+- **Backend API**: `https://e-commerce-platform-cufv.onrender.com/api-docs`
+- **Admin Panel**: `https://ecommerceplatform-admin.netlify.app`
 
 ---
 

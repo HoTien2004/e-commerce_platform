@@ -1,10 +1,10 @@
 import mongoose from "mongoose";
 
 export const connectDB = async (): Promise<void> => {
-    const uri = process.env.DB;
+    const uri = process.env.DB || process.env.MONGO_URI;
 
     if (!uri) {
-        throw new Error("Database connection string (process.env.DB) is not defined");
+        throw new Error("Database connection string (process.env.DB or process.env.MONGO_URI) is not defined");
     }
 
     const options = {

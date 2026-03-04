@@ -256,11 +256,9 @@ const Cart = () => {
   // Calculate totals for selected items only
   const selectedItemsList = items.filter((item) => selectedItems.has(item._id));
   const selectedTotal = selectedItemsList.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const selectedItemCount = selectedItemsList.reduce((sum, item) => sum + item.quantity, 0);
 
   // Use selected items total if any items are selected, otherwise 0
   const displayTotal = selectedItems.size > 0 ? selectedTotal : 0;
-  const displayItemCount = selectedItems.size > 0 ? selectedItemCount : 0;
 
   // Miễn phí vận chuyển cho đơn trên 1,000,000; ngược lại 50,000
   const shippingFee = displayTotal > 1000000 ? 0 : (displayTotal > 0 ? 50000 : 0);

@@ -16,7 +16,7 @@ import reviewRouter from "./routes/reviewRoute";
 import chatRouter from "./routes/chatRoute";
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = Number(process.env.PORT) || 3000;
 
 // Middleware
 app.use(cors());
@@ -75,10 +75,10 @@ app.use((req, res) => {
     });
 });
 
-// Start server
-app.listen(port, () => {
-    console.log(`Server Started on http://localhost:${port}`)
-    console.log(`Swagger docs available at http://localhost:${port}/api-docs`)
+// Start server - bind to 0.0.0.0 so Render/hosts can detect the port
+app.listen(port, '0.0.0.0', () => {
+    console.log(`Server Started on port ${port}`)
+    console.log(`Swagger docs at /api-docs`)
 }).on('error', (error: any) => {
     if (error.code === 'EADDRINUSE') {
         console.error(`❌ Port ${port} is already in use`);

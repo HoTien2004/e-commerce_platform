@@ -1,6 +1,6 @@
 import api from './api';
 import { API_ENDPOINTS } from '../config/api';
-import type { Order, OrdersResponse, OrderResponse, CreateOrderRequest, UpdateOrderStatusRequest } from '../types/order';
+import type { OrdersResponse, OrderResponse, CreateOrderRequest, UpdateOrderStatusRequest } from '../types/order';
 
 export const orderService = {
   // Create new order

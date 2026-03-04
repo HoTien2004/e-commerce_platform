@@ -6,7 +6,6 @@ import { useAuthStore } from '../store/authStore';
 import { useModalStore } from '../store/modalStore';
 import { cartService } from '../services/cartService';
 import toast from 'react-hot-toast';
-import type { CartItem } from '../types/cart';
 
 // Helper function to validate image URL
 const isValidImageUrl = (url: string | undefined): boolean => {
@@ -27,7 +26,7 @@ const isValidImageUrl = (url: string | undefined): boolean => {
 
 const Cart = () => {
   const navigate = useNavigate();
-  const { items, total, itemCount, setCart, updateItem, removeItem, clearCart, setLoading } = useCartStore();
+  const { items, setCart, updateItem, removeItem, setLoading } = useCartStore();
   const { isAuthenticated } = useAuthStore();
   const { openAuthModal } = useModalStore();
   const [currentPage, setCurrentPage] = useState(1);

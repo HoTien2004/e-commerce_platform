@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { orderService, type Order } from '../services/orderService';
-import { FiEye, FiEdit, FiSearch, FiTrash2 } from 'react-icons/fi';
+import { FiEye, FiSearch, FiTrash2 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import ConfirmModal from '../components/ConfirmModal';
 

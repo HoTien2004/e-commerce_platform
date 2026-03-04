@@ -121,6 +121,16 @@ VITE_API_BASE_URL=http://localhost:3000/api
     - `VNP_RETURN_URL=http://localhost:5173/payment/vnpay/return`
 - Kiểm tra route VNPay confirm/return trong backend `paymentRoute.ts` + controller để trùng với `VNP_RETURN_URL`.
 
+### Thông tin thẻ test VNPay (sandbox)
+
+Có thể dùng thông tin sau để test thanh toán (do VNPay cung cấp cho môi trường sandbox):
+
+- **Ngân hàng**: `NCB`
+- **Số thẻ**: `9704198526191432198`
+- **Tên chủ thẻ**: `NGUYEN VAN A`
+- **Ngày phát hành**: `07/15`
+- **Mật khẩu OTP**: `123456`
+
 ---
 
 ## Cấu hình Gemini (Chatbot)
@@ -257,11 +267,3 @@ Bạn có thể thay bằng link deploy thực tế (Vercel/Netlify/Render/Nginx
 - **Quản trị**
   - Truy cập admin → đăng nhập bằng tài khoản admin.
   - Sử dụng menu bên trái để quản lý sản phẩm, đơn hàng, người dùng, đánh giá, mã giảm giá, xem dashboard.
-
----
-
-## License
-
-Dự án này sử dụng **MIT License**.
-
-Chi tiết xem tại file [`LICENSE`](./LICENSE).

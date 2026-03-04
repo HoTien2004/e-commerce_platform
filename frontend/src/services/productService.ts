@@ -1,6 +1,6 @@
 import api from './api';
 import { API_ENDPOINTS } from '../config/api';
-import type { Product, ProductsResponse, ProductResponse } from '../types/product';
+import type { ProductsResponse, ProductResponse } from '../types/product';
 
 export const productService = {
   // Get products with filters, pagination, search

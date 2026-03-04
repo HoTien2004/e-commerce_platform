@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { FiFilter, FiX, FiChevronDown, FiChevronUp, FiChevronRight } from 'react-icons/fi';
+import { FiFilter, FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import ProductCard from '../components/ProductCard';
 import { productService } from '../services/productService';
 import { cartService } from '../services/cartService';

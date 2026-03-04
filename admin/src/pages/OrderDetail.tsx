@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { orderService, type Order } from '../services/orderService';
 import {
   FiArrowLeft,
-  FiPackage,
   FiClock,
   FiTruck,
   FiCheckCircle,
@@ -12,8 +11,6 @@ import {
   FiMapPin,
   FiPhone,
   FiMail,
-  FiCreditCard,
-  FiEdit,
 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
@@ -132,8 +129,6 @@ const OrderDetail = () => {
     }
   };
 
-  const getStatusConfig = (status: Order['orderStatus']) => statusConfig[status] || statusConfig.pending;
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -155,8 +150,6 @@ const OrderDetail = () => {
       </div>
     );
   }
-
-  const statusInfo = getStatusConfig(order.orderStatus);
 
   return (
     <div className="space-y-6">
@@ -274,7 +267,7 @@ const OrderDetail = () => {
                       {isValidImage && !hasError ? (
                         <img
                           src={imageUrl}
-                          alt={item.name}
+                          alt={product?.name}
                           className="w-full h-full object-cover"
                           onError={() => imageUrl && setImageErrors((prev) => new Set(prev).add(imageUrl))}
                         />
@@ -285,7 +278,7 @@ const OrderDetail = () => {
                       )}
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-medium text-gray-900">{item.name}</h3>
+                      <h3 className="font-medium text-gray-900">{product?.name}</h3>
                       <div className="mt-2 flex items-center justify-between">
                         <span className="text-gray-600">Số lượng: {item.quantity}</span>
                         <span className="font-medium">{formatCurrency(item.price * item.quantity)}</span>

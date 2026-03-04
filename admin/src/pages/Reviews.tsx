@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { reviewService, type Review } from '../services/reviewService';
-import { FiStar, FiTrash2, FiSearch, FiEye, FiFilter, FiX } from 'react-icons/fi';
+import { FiStar, FiTrash2, FiSearch, FiX } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import ConfirmModal from '../components/ConfirmModal';
 
 const Reviews = () => {
-  const navigate = useNavigate();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);

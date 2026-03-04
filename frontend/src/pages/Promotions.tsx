@@ -1,4 +1,4 @@
-import { FiTag, FiGift, FiPercent } from 'react-icons/fi';
+import { FiTag } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 
 const Promotions = () => {

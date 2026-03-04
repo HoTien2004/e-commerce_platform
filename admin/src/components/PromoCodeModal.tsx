@@ -8,16 +8,14 @@ import toast from 'react-hot-toast';
 
 const promoCodeSchema = z.object({
   code: z.string().min(1, 'Mã khuyến mãi không được để trống').regex(/^[A-Z0-9]+$/, 'Mã chỉ được chứa chữ cái in hoa và số'),
-  type: z.enum(['percentage', 'fixed', 'freeship'], {
-    required_error: 'Vui lòng chọn loại mã khuyến mãi',
-  }),
+  type: z.enum(['percentage', 'fixed', 'freeship']),
   value: z.number().min(0, 'Giá trị phải lớn hơn hoặc bằng 0'),
   minOrder: z.number().min(0, 'Đơn tối thiểu phải lớn hơn hoặc bằng 0'),
-  maxDiscount: z.number().min(0).optional().or(z.literal('')),
+  maxDiscount: z.number().min(0).optional(),
   validFrom: z.string().min(1, 'Ngày bắt đầu không được để trống'),
   validTo: z.string().min(1, 'Ngày kết thúc không được để trống'),
-  usageLimit: z.number().min(1).optional().or(z.literal('')),
-  isActive: z.boolean().default(true),
+  usageLimit: z.number().min(1).optional(),
+  isActive: z.boolean(),
 }).refine((data) => {
   if (data.type === 'percentage' && data.value > 100) {
     return false;
@@ -101,12 +99,12 @@ const PromoCodeModal = ({ promoCode, onClose, onSuccess }: PromoCodeModalProps) 
         isActive: data.isActive,
       };
 
-      if (data.maxDiscount && data.maxDiscount !== '') {
-        payload.maxDiscount = typeof data.maxDiscount === 'number' ? data.maxDiscount : Number(data.maxDiscount);
+      if (typeof data.maxDiscount === 'number') {
+        payload.maxDiscount = data.maxDiscount;
       }
 
-      if (data.usageLimit && data.usageLimit !== '') {
-        payload.usageLimit = typeof data.usageLimit === 'number' ? data.usageLimit : Number(data.usageLimit);
+      if (typeof data.usageLimit === 'number') {
+        payload.usageLimit = data.usageLimit;
       }
 
       if (isEditing && promoCode) {
